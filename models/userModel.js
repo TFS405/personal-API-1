@@ -1,11 +1,13 @@
-// REQUIRING ALL MODULES
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+// ------------- IMPORTING MODULES ----------------------
 
+const mongoose = require('mongoose');
 const validator = require('validator');
 
-// Creating the USER schema
+const { Schema } = mongoose;
 
+//----------- SCHEMAS ----------------------
+
+// Creating the USER schema
 const userSchema = new Schema({
   username: {
     type: String,
@@ -26,7 +28,11 @@ const userSchema = new Schema({
   }
 });
 
-// Creating a model / collection named Users --- uses the userSchema schema
+//---------------------- MODELS -----------------------------
+
+// Creating a model named User to represent and hold application user data
 const User = mongoose.model('User', userSchema);
+
+//------------------ EXPORTS ----------------------------
 
 module.exports = User;

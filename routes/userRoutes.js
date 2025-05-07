@@ -1,13 +1,19 @@
-// REQUIRING ALL MODULES
-const authController = require('../controllers/authController');
-// Creating a variable named "router" that is an instance of express.router, that will ROUTE all req properly to the appropriate handlers
+// ----------  IMPORTING MODULES -----------------
+
 const express = require('express');
-const router = express.Router();
 
 const userController = require('../controllers/userController');
+const authController = require('../controllers/authController.js');
+
+// Express router creation
+const router = express.Router();
+
+// ------------ ROUTES -----------------
 
 router.route('/').get(userController.getAllUsers);
 
 router.route('/signup').post(userController.signup);
+
+// --------------EXPORTING MODULE ------------
 
 module.exports = router;

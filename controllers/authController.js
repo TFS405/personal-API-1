@@ -1,10 +1,12 @@
+// ----------------- IMPORTING MODULES --------------------------
+
 const JWT = require('jsonwebtoken');
 
-// importing and requiring environmental variables required
+// ---------- ESTABLISH ENVIRONMENTAL VARIABLES ----------------
 const dotenv = require('dotenv');
 dotenv.config({ path: '../config/.env' });
 
-// -------    JWT    -----------
+// ---------------- JWT --------------------
 
 // Creating a helper function to assist in actually creating and sending json web tokens along-side the json response object
 
