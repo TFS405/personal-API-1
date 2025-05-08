@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.route('/').get(userController.getAllUsers);
 
-router.route('/signup').post(userController.signup);
+router.route('/signup').post(authController.signup);
 
 // --------------EXPORTING MODULE ------------
 
