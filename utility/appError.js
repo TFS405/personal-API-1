@@ -1,6 +1,12 @@
-class appError extends Error {
-  constrictor(message, errorCode) {
+class AppError extends Error {
+  constructor(message, statusCode) {
     super(message);
-    this.errorCode = errorCode;
+    this.statusCode = statusCode;
+
+    this.status = statusCode.toString().startsWith('4') ? 'failed' : 'error';
   }
 }
+
+//----------------- MODULE EXPORT -----------------
+
+module.exports = AppError;

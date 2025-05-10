@@ -6,6 +6,8 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 
 const userRouter = require('./routes/userRoutes');
+const AppError = require('./utility/appError');
+const sendJsonRes = require('./utility/sendJsonRes');
 
 // Express app creation
 const app = express();
@@ -19,6 +21,21 @@ app.use(morgan('dev'));
 
 app.use('/users', userRouter);
 
-//--------- EXPORTING MODULE ---------------
+// ------------- GLOBAL ERROR HANDLER ---------------
+
+app.use((err, req, res, next) => {
+  if (err instanceof AppError) {
+    return sendJsonRes(res, err.statusCode, { message: err.message });
+  }
+
+  return res.status(500).json({
+    status: 'failed',
+    message: 'No further information is available. Please  try again later!'
+  });
+
+  next();
+});
+
+//--------- EXPORTING MODULE --D-------------
 
 module.exports = app;
