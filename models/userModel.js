@@ -12,15 +12,23 @@ const { Schema } = mongoose;
 const userSchema = new Schema({
   username: {
     type: String,
-    required: true
+    required: [true, 'Please select a username!']
   },
   password: {
     type: String,
-    required: true
+    required: [true, 'Please type in a password!'],
+    select: false
   },
   confirmPassword: {
     type: String,
-    required: true
+    required: [true, 'Please confirm your password!'],
+    select: true,
+    validate: {
+      validator: function (el) {
+        return el === this.password;
+      },
+      message: 'Passwords do not match!'
+    }
   },
   passwordChangedAt: {
     type: Date,
@@ -28,11 +36,20 @@ const userSchema = new Schema({
   },
   email: {
     type: String,
-    required: true,
+    required: [true, 'Please provide a valid username!'],
     validate: [validator.isEmail, 'Please provide a valid email!']
   }
 });
 
+// ------------------ CUSTOM SCHEMA MODELS --------------
+
+userSchema.methods.toJSON = function () {
+  const userObject = this.toObject();
+  delete userObject.password;
+  delete userObject.confirmPassword;
+  delete userObject.__v;
+  return userObject;
+};
 // ----------------- MIDDLEWARE -------------------------
 
 /* Middleware function to check if a password has been modified. If so (including creation), this function will run before save() and create(),
