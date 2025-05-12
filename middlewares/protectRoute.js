@@ -19,36 +19,31 @@ const protectRoute = async (req, res, next) => {
   }
 
   // 2. VERIFY TOKEN VALIDITY
-  const promisifyResults = await promisify(JWT.verify)(token, process.env.JWT_SECRET).catch(
-    (err) => {
-      return next(new AppError('Please login again!', 401));
-    }
-  );
-
-  if (!promisifyResults?.id && !promisifyResults?.iat) {
-    return;
+  if (!token) {
+    return next(new AppError(' You are not logged in! Please provide a JWT', 40));
   }
 
-  const { id, iat } = promisifyResults;
-  // 3. CHECK IF USER CHANGED PASSWORDS AFTER THE TOKEN WAS ISSUED
+  const decoded = await promisify(JWT.verify)(token, process.env.JWT_SECRET).catch((err) => {
+    return next(new AppError('Please login again!', 401));
+  });
 
-  // 4. CHECK IF USER STILL EXIST
+  if (!decoded?.id || !decoded?.iat) {
+    return next(new AppError('Invalid JWT! Please login again', 401));
+  }
+
+  const { id, iat } = decoded;
+
+  // 3. Check to see if user still exist
   const user = await User.findById(id);
-
-  // 4-A. A modification is needed to safely check the differences in timestamps between the JWT and the time the password was changed (if at all).
-  const fixedTimeStamp = user.passwordChangedAt
-    ? parseInt(user.passwordChangedAt.getTime() / 1000, 10)
-    : null;
-
-  // If the password was changed after (fixedTimeStamp) the issuing of the JWT (iat), then the token is invalid for security reasons.
-  if (fixedTimeStamp && fixedTimeStamp > iat) {
-    next(
-      new AppError(
-        'Password was recently changed! Please login again to delete your this account!',
-        401
-      )
-    );
+  if (!user) {
+    return next(new AppError('User not found!', 404));
   }
+
+  // Check if password was changed after JWT was issued
+  if (user.changedPasswordAfter(iat)) {
+    return next(new AppError('Password was recently changed! Please login again!', 401));
+  }
+
   req.user = user;
   next();
 };

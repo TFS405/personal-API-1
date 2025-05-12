@@ -20,3 +20,10 @@ exports.getAllUsers = async (req, res) => {
     console.log(err);
   }
 };
+
+exports.deleteUser = async (req, res) => {
+  // 1. Authenticate user request from JWT
+  // 2. If authentication successful, authorize request
+  // 3. Find and delete user resource
+  // 4. Return JSON response.
+};

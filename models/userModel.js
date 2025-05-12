@@ -43,12 +43,24 @@ const userSchema = new Schema({
 
 // ------------------ CUSTOM SCHEMA MODELS --------------
 
+// This is overwriting a pre-established mongoose model method to remove specific fields from ever being returned inside any JSON responses.
 userSchema.methods.toJSON = function () {
   const userObject = this.toObject();
   delete userObject.password;
   delete userObject.confirmPassword;
   delete userObject.__v;
   return userObject;
+};
+
+userSchema.methods.changedPasswordAfter = async function (iat) {
+  const passwordChangeTimestamp = this.passwordChangedAt
+    ? parseInt(this.passwordChangedAt.getTime() / 1000, 10)
+    : null;
+
+  if (!passwordChangeTimestamp || passwordChangeTimestamp < iat) {
+    return false;
+  }
+  return true;
 };
 // ----------------- MIDDLEWARE -------------------------
 
