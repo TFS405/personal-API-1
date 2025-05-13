@@ -9,6 +9,10 @@ const userRouter = require('./routes/userRoutes');
 const AppError = require('./utility/appError');
 const sendJsonRes = require('./utility/sendJsonRes');
 
+// -------- LOADING ENV VARIABLES ---------------
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, './config/.env') });
+
 // Express app creation
 const app = express();
 

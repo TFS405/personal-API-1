@@ -20,7 +20,7 @@ const protectRoute = async (req, res, next) => {
 
   // 2. VERIFY TOKEN VALIDITY
   if (!token) {
-    return next(new AppError(' You are not logged in! Please provide a JWT', 40));
+    return next(new AppError(' You are not logged in! Please provide a JWT', 401));
   }
 
   const decoded = await promisify(JWT.verify)(token, process.env.JWT_SECRET).catch((err) => {

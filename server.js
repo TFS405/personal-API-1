@@ -4,7 +4,8 @@ const app = require('./app');
 const connectDB = require('./config/mongoDB');
 
 // ---------- ESTABLISH ENVIRONMENTAL VARIABLES ----------------
-require('dotenv').config({ path: `./config/.env` });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, './config/.env') });
 
 //------------ SERVER CREATION & INIT --------------------
 
