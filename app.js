@@ -43,7 +43,7 @@ app.use((err, req, res, next) => {
   }
 
   // managing MongoDB duplicate-key errors
-  if (possibleErrorCode) {
+  if (possibleErrorCode === 11000) {
     return sendJsonRes(res, 400, { message: errMessage });
   }
 
@@ -52,8 +52,6 @@ app.use((err, req, res, next) => {
     status: 'failed',
     message: 'No further information is available. Please  try again later!'
   });
-
-  next();
 });
 
 //--------- EXPORTING MODULE --D-------------
