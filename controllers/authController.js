@@ -4,11 +4,7 @@ const JWT = require('jsonwebtoken');
 
 const User = require('../models/userModel');
 const AppError = require('../utility/appError');
-
-// ---------- ESTABLISH ENVIRONMENTAL VARIABLES ----------------
-const dotenv = require('dotenv');
 const sendJsonRes = require('../utility/sendJsonRes');
-dotenv.config({ path: '../config/.env' });
 
 // ---------------- JWT --------------------
 
@@ -39,7 +35,8 @@ exports.signup = async (req, res, next) => {
     username: req.body.username,
     password: req.body.password,
     confirmPassword: req.body.confirmPassword,
-    email: req.body.email
+    email: req.body.email,
+    role: req.body.role
   });
 
   const token = createToken(newUser._id);

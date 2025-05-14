@@ -2,9 +2,6 @@
 
 const mongoose = require('mongoose');
 
-// ---------- ESTABLISH ENVIRONMENTAL VARIABLES ----------------
-require('dotenv').config({ path: `${__dirname}/.env` });
-
 // Will connect to MongoDB, then immediately initate a server.
 const connectDB = async (port) => {
   try {

@@ -2,6 +2,7 @@
 
 const User = require('../models/userModel');
 const sendJsonRes = require('../utility/sendJsonRes');
+const AppError = require('../utility/appError');
 
 //-------------------- HANDLER FUNCTIONS ------------------------
 
@@ -21,9 +22,28 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-exports.deleteUser = async (req, res) => {
-  // 1. Authenticate user request from JWT
-  // 2. If authentication successful, authorize request
-  // 3. Find and delete user resource
-  // 4. Return JSON response.
+exports.getUser = async (req, res) => {
+  // 1. Identify target user
+  // 2.Verify permissions to retrieve user
+  // 3. If authentication succesful, retrieve user
+  // 4. Return JSON response
+};
+
+exports.deleteUser = async (req, res, next) => {
+  // 1. Find and delete user resource
+  let selectedId;
+  if (!req.body?.id) {
+    return next(new AppError('Please provide a user ID to delete!', 404));
+  }
+  selectedId = req.body.id;
+
+  // 2. verify permisions to delete selected user
+  if (!req.user._doc.role.includes('admin') && !(req.user.id === selectedId)) {
+    return next(new AppError('You do not have permission to delete this user!', 401));
+  }
+  // 3. Proceed with user account deletion
+  await User.findByIdAndDelete(selectedId);
+
+  // 4. Send json response
+  sendJsonRes(res, 204);
 };

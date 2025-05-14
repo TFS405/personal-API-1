@@ -12,7 +12,8 @@ const { Schema } = mongoose;
 const userSchema = new Schema({
   username: {
     type: String,
-    required: [true, 'Please select a username!']
+    required: [true, 'Please select a username!'],
+    unique: [true, 'Username is already taken, please enter a different username']
   },
   password: {
     type: String,
@@ -36,8 +37,13 @@ const userSchema = new Schema({
   },
   email: {
     type: String,
-    required: [true, 'Please provide a valid username!'],
-    validate: [validator.isEmail, 'Please provide a valid email!']
+    required: [true, 'Please provide a valid email!'],
+    validate: [validator.isEmail, 'Please provide a valid email!'],
+    unique: [true, 'Email is already in use, please enter a different email']
+  },
+  role: {
+    type: String,
+    default: 'user'
   }
 });
 
@@ -56,8 +62,9 @@ userSchema.methods.changedPasswordAfter = async function (iat) {
   const passwordChangeTimestamp = this.passwordChangedAt
     ? parseInt(this.passwordChangedAt.getTime() / 1000, 10)
     : null;
-
-  if (!passwordChangeTimestamp || passwordChangeTimestamp < iat) {
+  console.log(passwordChangeTimestamp);
+  console.log(iat);
+  if (passwordChangeTimestamp === null || passwordChangeTimestamp < iat) {
     return false;
   }
   return true;

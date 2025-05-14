@@ -6,12 +6,9 @@ const JWT = require('jsonwebtoken');
 const User = require('../models/userModel');
 const AppError = require('../utility/appError');
 
-// -----------CONFIGURING ENVIRONMENTAL VARIABLES
-require('dotenv').config({ path: '../config/.env' });
-
 // --------- FUNCTIONS -----------
 
-const protectRoute = async (req, res, next) => {
+const protect = async (req, res, next) => {
   // 1. VERIFY TOKEN EXISTENCE
   let token;
   if (req?.headers?.authorization?.startsWith('Bearer')) {
@@ -40,7 +37,7 @@ const protectRoute = async (req, res, next) => {
   }
 
   // Check if password was changed after JWT was issued
-  if (user.changedPasswordAfter(iat)) {
+  if (!user.changedPasswordAfter(iat)) {
     return next(new AppError('Password was recently changed! Please login again!', 401));
   }
 
@@ -50,4 +47,4 @@ const protectRoute = async (req, res, next) => {
 
 // ------------- MODULE EXPORTS ----------------
 
-module.exports = protectRoute;
+module.exports = protect;
