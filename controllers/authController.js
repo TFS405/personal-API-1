@@ -5,7 +5,7 @@ const JWT = require('jsonwebtoken');
 const User = require('../models/userModel');
 const AppError = require('../utility/appError');
 const sendJsonRes = require('../utility/sendJsonRes');
-
+const catchAsync = require('../utility/catchAsync');
 // ---------------- JWT --------------------
 
 // A function that will create and assign a user a JWT
@@ -19,7 +19,7 @@ const createToken = (id) => {
 
 //-----------  HANDLER FUNCTIONS ---------------
 
-exports.signup = async (req, res, next) => {
+exports.signup = catchAsync(async (req, res, next) => {
   if (!req.body) {
     next(new AppError('Please provide a json body!', 400));
   }
@@ -45,4 +45,4 @@ exports.signup = async (req, res, next) => {
     token,
     user: newUser
   });
-};
+});
