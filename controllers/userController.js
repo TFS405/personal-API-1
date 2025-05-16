@@ -23,7 +23,7 @@ exports.getAllUsers = catchAsync(async (req, res) => {
   }
 });
 
-exports.getUser = catchAsync(async (req, res) => {
+exports.getUser = catchAsync(async (req, res, next) => {
   // 1. Identify target user
   const targetID = req.params.id;
 
@@ -35,7 +35,7 @@ exports.getUser = catchAsync(async (req, res) => {
     return next(new AppError('User not found! Please check the user ID', 404));
   }
   // 4. Return JSON response
-  return sendJsonRes(res, 200, { user: targetUser });
+  return sendJsonRes(res, 200, { user: targetUser, hello: true });
 });
 
 exports.deleteUser = catchAsync(async (req, res, next) => {

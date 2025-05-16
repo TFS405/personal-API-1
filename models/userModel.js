@@ -62,8 +62,6 @@ userSchema.methods.changedPasswordAfter = async function (iat) {
   const passwordChangeTimestamp = this.passwordChangedAt
     ? parseInt(this.passwordChangedAt.getTime() / 1000, 10)
     : null;
-  console.log(passwordChangeTimestamp);
-  console.log(iat);
   if (passwordChangeTimestamp === null || passwordChangeTimestamp < iat) {
     return false;
   }
