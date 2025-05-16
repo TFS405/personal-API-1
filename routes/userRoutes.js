@@ -13,6 +13,8 @@ const router = express.Router();
 
 router.route('/').get(protect, userController.getAllUsers);
 
+router.route('/login').post(authController.login);
+
 // router.route('/:id').get(protect, authController.getUser);
 
 router.route('/signup').post(authController.signup);

@@ -32,19 +32,30 @@ app.use((err, req, res, next) => {
   if (err instanceof AppError) {
     return sendJsonRes(res, err.statusCode, { message: err.message });
   }
-  // Aquiring the error name & message to facilitate proper error routing in respects to managing the json output
-  const errName = err.name;
-  const errMessage = err.message;
-  const possibleErrorCode = err.code ?? err.cause.code;
+  let possibleErrorCode;
 
-  // Managing validation errors
-  if (errName === 'ValidationError') {
-    return sendJsonRes(res, 400, { message: errMessage });
+  if (err.code ?? err.cause?.code) {
+    possibleErrorCode = err.code ?? err.cause.code;
   }
 
-  // managing MongoDB duplicate-key errors
+  // Managing validation errors
+  if (err.name === 'ValidationError') {
+    return sendJsonRes(res, 400, { message: err.message });
+  }
+
+  // Managing MongoDB duplicate-key errors
   if (possibleErrorCode === 11000) {
-    return sendJsonRes(res, 400, { message: errMessage });
+    return sendJsonRes(res, 400, { message: err.message });
+  }
+
+  // Managing castErrors
+  if (err.name === 'CastError') {
+    return sendJsonRes(res, 400, { message: err.message });
+  }
+
+  // Managing TypeErrors
+  if (err.name === 'TypeError') {
+    return sendJsonRes(res, 400, { message: err.message });
   }
 
   console.log(err);

@@ -27,9 +27,15 @@ exports.getUser = catchAsync(async (req, res) => {
   // 1. Identify target user
   const targetID = req.params.id;
 
-  // 2.Verify permissions to retrieve user
-  // 3. If authentication succesful, retrieve user
+  // 2. query for targetID
+  const targetUser = await User.findById(targetID);
+
+  // 3. Ensure that targetUser was found
+  if (!targetUser) {
+    return next(new AppError('User not found! Please check the user ID', 404));
+  }
   // 4. Return JSON response
+  return sendJsonRes(res, 200, { user: targetUser });
 });
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
