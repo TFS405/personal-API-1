@@ -2,6 +2,7 @@
 
 const User = require('../models/userModel');
 const sendJsonRes = require('../utility/sendJsonRes');
+const APIFeatures = require('../utility/apiFeatures');
 const AppError = require('../utility/appError');
 const catchAsync = require('../utility/catchAsync');
 
@@ -9,18 +10,18 @@ const catchAsync = require('../utility/catchAsync');
 
 // Will return all users from the DB, with a field called "results" that equates to the total number of results return. (2 documents found? results = 2)
 exports.getAllUsers = catchAsync(async (req, res) => {
-  try {
-    const users = await User.find();
+  const features = new APIFeatures(User.find(), req.query);
 
-    sendJsonRes(res, 200, {
-      totalResults: users.length,
-      data: {
-        users
-      }
-    });
-  } catch (err) {
-    console.log(err);
-  }
+  features.filter();
+
+  const users = await features.query;
+
+  sendJsonRes(res, 200, {
+    totalResults: users.length,
+    data: {
+      users
+    }
+  });
 });
 
 exports.getUser = catchAsync(async (req, res, next) => {
