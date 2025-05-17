@@ -5,6 +5,7 @@ const sendJsonRes = require('../utility/sendJsonRes');
 const APIFeatures = require('../utility/apiFeatures');
 const AppError = require('../utility/appError');
 const catchAsync = require('../utility/catchAsync');
+const filterObj = require('../utility/filterObject');
 
 //-------------------- HANDLER FUNCTIONS ------------------------
 
@@ -36,7 +37,32 @@ exports.getUser = catchAsync(async (req, res, next) => {
     return next(new AppError('User not found! Please check the user ID', 404));
   }
   // 4. Return JSON response
-  return sendJsonRes(res, 200, { user: targetUser, hello: true });
+  return sendJsonRes(res, 200, { user: targetUser });
+});
+
+exports.updateUser = catchAsync(async (req, res, next) => {
+  // 1. Authenticate user
+  const targetID = req.params.id;
+  const userID = req.user._doc._id;
+
+  if (!(userID.toString() === targetID) && !req.user._doc.role.includes('admin')) {
+    return next(new AppError('You do not have permission to update this account!', 401));
+  }
+
+  // 2. Sanatize new data
+  if (!req.body) {
+    return next(new AppError('Please enter new information to update account!', 400));
+  }
+  const cleanBody = filterObj(req.body, 'username', 'email');
+
+  // 3. Find user to change
+  const user = await User.findByIdAndUpdate(targetID, cleanBody, {
+    runValidators: true,
+    // Return the 'new' version of the MongoDB document
+    new: true
+  });
+  // Send json response
+  sendJsonRes(res, 205, { user });
 });
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
