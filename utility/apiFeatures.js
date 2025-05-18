@@ -5,9 +5,10 @@ class APIFeatures {
   }
 
   filter() {
-    // Removing query operators from query string
+    // Making a copy of the query string to be manipulated
     const queryObj = { ...this.queryString };
 
+    // Excluding query operators from queryObj
     const excludedFields = ['page', 'sort', 'limit', 'fields'];
     excludedFields.forEach((el) => delete queryObj[el]);
 

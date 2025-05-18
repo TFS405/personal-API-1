@@ -5,10 +5,14 @@ const Challenge = require('../models/challengesModel');
 const { z } = require('zod');
 
 const sendJsonRes = require('../utility/sendJsonRes');
+const handlerFactory = require('../utility/handlerFactory');
 const catchAsync = require('../utility/catchAsync');
+const APIFeatures = require('../utility/apiFeatures');
 const AppError = require('../utility/appError');
 
 // -------------- CONTROLLER FUNCTIONS --------------
+
+exports.getAllChallenges = handlerFactory.getAll(Challenge, 'Challenges');
 
 exports.createChallenge = catchAsync(async (req, res, next) => {
   if (!req.body) {
