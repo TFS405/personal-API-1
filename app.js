@@ -6,6 +6,8 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 
 const userRouter = require('./routes/userRoutes');
+const challengeRouter = require('./routes/challengeRoutes');
+
 const AppError = require('./utility/appError');
 const sendJsonRes = require('./utility/sendJsonRes');
 
@@ -26,9 +28,16 @@ app.use(morgan('dev'));
 
 app.use('/users', userRouter);
 
+app.use('/challenges', challengeRouter);
+
 // ------------- ERROR HANDLERS ---------------
 
 app.use((err, req, res, next) => {
+  let message;
+  if (err.message) {
+    message = err.message;
+  }
+
   if (err instanceof AppError) {
     return sendJsonRes(res, err.statusCode, { message: err.message });
   }
@@ -40,7 +49,7 @@ app.use((err, req, res, next) => {
 
   // Managing validation errors
   if (err.name === 'ValidationError') {
-    return sendJsonRes(res, 400, { message: err.message });
+    return sendJsonRes(res, 400, { message });
   }
 
   // Managing MongoDB duplicate-key errors
