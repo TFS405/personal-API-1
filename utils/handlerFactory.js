@@ -1,18 +1,19 @@
 // ----------- IMPORT MODULES -------------------
-const sendJsonRes = require('../utility/sendJsonRes');
-const catchAsync = require('../utility/catchAsync');
+const sendJsonRes = require('./sendJsonRes');
+const catchAsync = require('./catchAsync');
 const AppError = require('./appError');
-const APIFeatures = require('../utility/apiFeatures');
+const APIFeatures = require('./apiFeatures');
 
 // ----------- HANDLER FUNCTIONS ----------------
 
 exports.getAll = (model, nameOfResourcePlural) => {
   return catchAsync(async (req, res, next) => {
     // Applying query parameters to search query
-    const features = APIFeatures(model.find(), req.query).filter();
+    const features = new APIFeatures(model.find(), req.query).filter();
 
     // Executing search query (that has been modified by query paremeters )
     const docs = await features.query;
+    const results = docs.Length;
 
     if (!docs || typeof docs === 'null') {
       return next(
@@ -20,6 +21,7 @@ exports.getAll = (model, nameOfResourcePlural) => {
       );
     }
     sendJsonRes(res, 200, {
+      results,
       data: docs
     });
   });

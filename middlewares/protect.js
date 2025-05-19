@@ -4,7 +4,7 @@ const { promisify } = require('util');
 const JWT = require('jsonwebtoken');
 
 const User = require('../models/userModel');
-const AppError = require('../utility/appError');
+const AppError = require('../utils/appError');
 
 // --------- FUNCTIONS -----------
 

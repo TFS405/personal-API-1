@@ -4,11 +4,11 @@ const Challenge = require('../models/challengesModel');
 
 const { z } = require('zod');
 
-const sendJsonRes = require('../utility/sendJsonRes');
-const handlerFactory = require('../utility/handlerFactory');
-const catchAsync = require('../utility/catchAsync');
-const APIFeatures = require('../utility/apiFeatures');
-const AppError = require('../utility/appError');
+const sendJsonRes = require('../utils/sendJsonRes');
+const handlerFactory = require('../utils/handlerFactory');
+const catchAsync = require('../utils/catchAsync');
+const APIFeatures = require('../utils/apiFeatures');
+const AppError = require('../utils/appError');
 
 // -------------- CONTROLLER FUNCTIONS --------------
 

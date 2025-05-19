@@ -4,9 +4,9 @@ const JWT = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 const User = require('../models/userModel');
-const AppError = require('../utility/appError');
-const sendJsonRes = require('../utility/sendJsonRes');
-const catchAsync = require('../utility/catchAsync');
+const AppError = require('../utils/appError');
+const sendJsonRes = require('../utils/sendJsonRes');
+const catchAsync = require('../utils/catchAsync');
 
 // ---------------- JWT --------------------
 

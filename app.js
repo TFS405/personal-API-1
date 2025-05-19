@@ -8,8 +8,8 @@ const morgan = require('morgan');
 const userRouter = require('./routes/userRoutes');
 const challengeRouter = require('./routes/challengeRoutes');
 
-const AppError = require('./utility/appError');
-const sendJsonRes = require('./utility/sendJsonRes');
+const AppError = require('./utils/appError');
+const sendJsonRes = require('./utils/sendJsonRes');
 
 // -------- LOADING ENV VARIABLES ---------------
 const path = require('path');

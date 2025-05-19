@@ -1,11 +1,11 @@
 // ---------- MODULE IMPORTS ---------------------
 
 const User = require('../models/userModel');
-const sendJsonRes = require('../utility/sendJsonRes');
-const APIFeatures = require('../utility/apiFeatures');
-const AppError = require('../utility/appError');
-const catchAsync = require('../utility/catchAsync');
-const filterObj = require('../utility/filterObject');
+const sendJsonRes = require('../utils/sendJsonRes');
+const APIFeatures = require('../utils/apiFeatures');
+const AppError = require('../utils/appError');
+const catchAsync = require('../utils/catchAsync');
+const filterObj = require('../utils/filterObject');
 
 //-------------------- HANDLER FUNCTIONS ------------------------
 
