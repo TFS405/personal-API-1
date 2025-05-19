@@ -1,11 +1,11 @@
-module.exports = (obj, ...allowedFields) => {
-  const newObj = {};
+const filterObj = (allowedProperties, givenProperties) => {
+  const cleanObj = {};
 
-  Object.keys(obj).forEach((key) => {
-    if (allowedFields.includes(key)) {
-      newObj[key] = obj[key];
+  Object.keys(givenProperties).forEach((key) => {
+    if (allowedProperties.includes(key)) {
+      cleanObj[key] = givenProperties[key];
     }
   });
 
-  return newObj;
+  return cleanObj;
 };
