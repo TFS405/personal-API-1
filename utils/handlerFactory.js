@@ -13,7 +13,8 @@ exports.getAll = (model, nameOfResourcePlural) => {
 
     // Executing search query (that has been modified by query paremeters )
     const docs = await features.query;
-    const results = docs.Length;
+    // Obtaining  the amount of results returned from search query
+    const results = docs.length;
 
     if (!docs || typeof docs === 'null') {
       return next(
