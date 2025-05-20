@@ -1,3 +1,7 @@
+// ------------ MODULE IMPORTS ----------------
+
+// ------------- FUNCTION ---------------------
+
 const filterObj = (allowedProperties, givenProperties) => {
   const cleanObj = {};
 
@@ -9,3 +13,7 @@ const filterObj = (allowedProperties, givenProperties) => {
 
   return cleanObj;
 };
+
+// ------------- MODULE EXPORT ---------------
+
+module.exports = filterObj;

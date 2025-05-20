@@ -3,6 +3,7 @@ const sendJsonRes = require('./sendJsonRes');
 const catchAsync = require('./catchAsync');
 const AppError = require('./appError');
 const APIFeatures = require('./apiFeatures');
+const filterObj = require('../utils/filterObject');
 
 // ----------- HANDLER FUNCTIONS ----------------
 
@@ -25,5 +26,24 @@ exports.getAll = (model, nameOfResourcePlural) => {
       results,
       data: docs
     });
+  });
+};
+
+exports.createOne = (model, allowedProperties) => {
+  return catchAsync(async (req, res, next) => {
+    // Make sure req.body is not empty!
+    if (!req.body) {
+      return next(new AppError(`Request body is empty. Please include data in the request`, 400));
+    }
+
+    const filteredObj = filterObj(allowedProperties, req.body);
+
+    if (!filterObj) {
+      return next(
+        new AppError(
+          'No valid properties recieved in the request body, please submit a valid property!'
+        )
+      );
+    }
   });
 };
