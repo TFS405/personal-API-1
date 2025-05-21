@@ -1,9 +1,11 @@
 // ----------- IMPORT MODULES -------------------
+
 const sendJsonRes = require('./sendJsonRes');
 const catchAsync = require('./catchAsync');
 const AppError = require('./appError');
 const APIFeatures = require('./apiFeatures');
-const filterObj = require('../utils/filterObject');
+const filterObj = require('./filterObject.js');
+const zodValidator = require('./zodValidator.js');
 
 // ----------- HANDLER FUNCTIONS ----------------
 
@@ -17,7 +19,7 @@ exports.getAll = (model, nameOfResourcePlural) => {
     // Obtaining  the amount of results returned from search query
     const results = docs.length;
 
-    if (!docs || typeof docs === 'null') {
+    if (!docs || docs.length === 0) {
       return next(
         new AppError(`${nameOfResourcePlural} not found! Please check your search query!`, 400)
       );
@@ -29,21 +31,32 @@ exports.getAll = (model, nameOfResourcePlural) => {
   });
 };
 
-exports.createOne = (model, allowedProperties) => {
+exports.createOne = (model, allowedProperties, zodSchema) => {
   return catchAsync(async (req, res, next) => {
-    // Make sure req.body is not empty!
-    if (!req.body) {
+    // Make sure request body is not empty, and that is actually has at least one key!
+    if (!req.body || Object.keys(req.body).length === 0) {
       return next(new AppError(`Request body is empty. Please include data in the request`, 400));
     }
 
-    const filteredObj = filterObj(allowedProperties, req.body);
+    // Filter the request body
+    const filtered = filterObj(allowedProperties, req.body);
 
-    if (!filterObj) {
+    if (!filtered || Object.keys(filtered).length === 0) {
       return next(
         new AppError(
-          'No valid properties recieved in the request body, please submit a valid property!'
+          'No valid properties received in the request body, please submit a valid property!'
         )
       );
     }
+    // Validate the request body
+    zodValidator(zodSchema, filtered);
+
+    // Save the request body
+    const doc = await model.create(filtered);
+
+    // Return JSON response
+    sendJsonRes(res, 201, {
+      data: { doc }
+    });
   });
 };
