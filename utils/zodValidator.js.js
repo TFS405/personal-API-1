@@ -11,7 +11,6 @@ of that key is to reflect the data type. dataObjectToValidate reflects the actua
 
 const validateDataTypes = (zodSchema, dataObjectToValidate) => {
   const validationSchema = z.object(zodSchema);
-
   const validationResults = validationSchema.safeParse(dataObjectToValidate);
 
   // If validation failed, an error is created with the intention to be caught by a "validationError" edge-casing,
@@ -19,10 +18,14 @@ const validateDataTypes = (zodSchema, dataObjectToValidate) => {
 
   if (!validationResults.success) {
     const err = new Error();
-    const errMessages = validationResults.error.issues.map((issue) => issue.message);
-    err.name = 'ValidationError';
-    err.message = errMessages.join('\n');
+    const errMessages = validationResults.error.issues.map((issue) => {
+      return `${issue.path}: ${issue.message}`;
+    });
 
+    err.name = 'ValidationError';
+    err.message = errMessages.join('\n ');
+
+    console.log(`err.message ---> `, err.message);
     throw err;
   }
   return true;

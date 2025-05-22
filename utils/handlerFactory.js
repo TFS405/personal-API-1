@@ -9,21 +9,23 @@ const zodValidator = require('./zodValidator.js');
 
 // ----------- HANDLER FUNCTIONS ----------------
 
-exports.getAll = (model, nameOfResourcePlural) => {
+exports.getAll = (model) => {
   return catchAsync(async (req, res, next) => {
     // Applying query parameters to search query
     const features = new APIFeatures(model.find(), req.query).filter();
 
-    // Executing search query (that has been modified by query paremeters )
+    // Executing search query (that has been modified by query paremeters such as filter, sort, limit, paginate)
     const docs = await features.query;
     // Obtaining  the amount of results returned from search query
     const results = docs.length;
 
+    // Making sure that "docs" is not an empty / falsy value.
     if (!docs || docs.length === 0) {
       return next(
-        new AppError(`${nameOfResourcePlural} not found! Please check your search query!`, 400)
+        new AppError(`Search query returned no results! Please check your search query!`, 404)
       );
     }
+    // Sending JSON response
     sendJsonRes(res, 200, {
       results,
       data: docs
@@ -31,15 +33,15 @@ exports.getAll = (model, nameOfResourcePlural) => {
   });
 };
 
-exports.createOne = (model, allowedProperties, zodSchema) => {
+exports.createOne = (model, updatableFields, zodSchema) => {
   return catchAsync(async (req, res, next) => {
-    // Make sure request body is not empty, and that is actually has at least one key!
+    // Make sure request body is not empty, and that it actually has at least one key!
     if (!req.body || Object.keys(req.body).length === 0) {
       return next(new AppError(`Request body is empty. Please include data in the request`, 400));
     }
 
     // Filter the request body
-    const filtered = filterObj(allowedProperties, req.body);
+    const filtered = filterObj(updatableFields, req.body);
 
     if (!filtered || Object.keys(filtered).length === 0) {
       return next(
