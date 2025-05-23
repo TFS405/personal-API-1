@@ -16,5 +16,6 @@ router
   .get(protect, challengeController.getAllChallenges)
   .post(protect, challengeController.createChallenge);
 
+router.route('/:id').delete(protect, challengeController.deleteChallenge);
 // --------------- MODULE EXPORT -----------------
 module.exports = router;

@@ -62,3 +62,14 @@ exports.createOne = (model, updatableFields, zodSchema) => {
     });
   });
 };
+
+exports.deleteOne = (model) => {
+  return catchAsync(async (req, res, next) => {
+    const doc = await model.findByIdAndDelete(req.params.id);
+    if (!doc) {
+      return next(new AppError('No resource found with that ID!', 404));
+    }
+
+    sendJsonRes(res, 204, {});
+  });
+};
