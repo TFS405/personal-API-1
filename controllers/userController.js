@@ -6,24 +6,12 @@ const APIFeatures = require('../utils/apiFeatures');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const filterObj = require('../utils/filterObject');
+const handlerFactory = require('../utils/handlerFactory');
 
 //-------------------- HANDLER FUNCTIONS ------------------------
 
 // Will return all users from the DB, with a field called "results" that equates to the total number of results return. (2 documents found? results = 2)
-exports.getAllUsers = catchAsync(async (req, res) => {
-  const features = new APIFeatures(User.find(), req.query);
-
-  features.filter();
-
-  const users = await features.query;
-
-  sendJsonRes(res, 200, {
-    totalResults: users.length,
-    data: {
-      users
-    }
-  });
-});
+exports.getAllUsers = handlerFactory.getAll(User);
 
 exports.getUser = catchAsync(async (req, res, next) => {
   // 1. Identify target user
