@@ -10,8 +10,9 @@ const APIFeatures = require('../utils/apiFeatures');
 const AppError = require('../utils/appError');
 
 // --------------------- VARIABLES ------------------
+
 // Total list of updatable fields for create function
-const createUpdatableFields = [
+const updatableFields = [
   'category',
   'difficulty',
   'challengeTask',
@@ -19,7 +20,7 @@ const createUpdatableFields = [
   'challengeSolution'
 ];
 // Validator for create functions
-const createDataTypeValidator = {
+const dataTypeValidator = {
   category: z.string(),
   difficulty: z.string(),
   challengeTask: z.string(),
@@ -32,10 +33,8 @@ exports.getAllChallenges = handlerFactory.getAll(Challenge);
 
 exports.getChallenge = handlerFactory.getOne(Challenge);
 
-exports.createChallenge = handlerFactory.createOne(
-  Challenge,
-  createUpdatableFields,
-  createDataTypeValidator
-);
+exports.createChallenge = handlerFactory.createOne(Challenge, updatableFields, dataTypeValidator);
+
+exports.updateChallenge = handlerFactory.updateOne(Challenge, updatableFields, dataTypeValidator);
 
 exports.deleteChallenge = handlerFactory.deleteOne(Challenge);

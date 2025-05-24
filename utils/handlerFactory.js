@@ -35,7 +35,7 @@ exports.getAll = (model) => {
 
 exports.getOne = (model) => {
   return catchAsync(async (req, res, next) => {
-    doc = await model.findById(req.params.id);
+    const doc = await model.findById(req.params.id);
 
     if (!doc) {
       return next(new AppError('No resource found with that ID!', 404));
@@ -55,6 +55,7 @@ exports.createOne = (model, updatableFields, zodSchema) => {
     // Filter the request body
     const filtered = filterObj(updatableFields, req.body);
 
+    // Make sure that there is still data remaining after filtering
     if (!filtered || Object.keys(filtered).length === 0) {
       return next(
         new AppError(
@@ -72,6 +73,42 @@ exports.createOne = (model, updatableFields, zodSchema) => {
     sendJsonRes(res, 201, {
       data: { doc }
     });
+  });
+};
+
+exports.updateOne = (model, updatableFields, zodSchema) => {
+  return catchAsync(async (req, res, next) => {
+    // Make sure request body is not empty, and that it actually has at least one key!
+    const bodyData = req.body;
+
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return next(
+        new AppError(
+          `Request body is empty. Please include data in the request body to successfully update!`,
+          400
+        )
+      );
+    }
+
+    // Filter the request body
+    const filtered = filterObj(updatableFields, req.body);
+
+    // Make sure that there is still data remaining after filtering
+    if (!filtered || Object.keys(filtered).length === 0) {
+      return next(
+        new AppError(
+          'No valid properties received in the request body, please submit a valid property!'
+        )
+      );
+    }
+    // Validate the request body
+    zodValidator(zodSchema, filtered);
+
+    const updatedDoc = await model.findByIdAndUpdate(req.params.id, filtered, {
+      new: true
+    });
+
+    sendJsonRes(res, 200, { data: updatedDoc });
   });
 };
 
