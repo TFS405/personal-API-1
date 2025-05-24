@@ -33,6 +33,18 @@ exports.getAll = (model) => {
   });
 };
 
+exports.getOne = (model) => {
+  return catchAsync(async (req, res, next) => {
+    doc = await model.findById(req.params.id);
+
+    if (!doc) {
+      return next(new AppError('No resource found with that ID!', 404));
+    }
+
+    sendJsonRes(res, 200, { user: doc });
+  });
+};
+
 exports.createOne = (model, updatableFields, zodSchema) => {
   return catchAsync(async (req, res, next) => {
     // Make sure request body is not empty, and that it actually has at least one key!

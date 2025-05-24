@@ -30,6 +30,8 @@ const createDataTypeValidator = {
 
 exports.getAllChallenges = handlerFactory.getAll(Challenge);
 
+exports.getChallenge = handlerFactory.getOne(Challenge);
+
 exports.createChallenge = handlerFactory.createOne(
   Challenge,
   createUpdatableFields,
