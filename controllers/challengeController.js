@@ -2,11 +2,7 @@
 
 const zod = require('../utils/zodValidator.js');
 const Challenge = require('../models/challengesModel');
-const sendJsonRes = require('../utils/sendJsonRes');
 const handlerFactory = require('../utils/handlerFactory');
-const catchAsync = require('../utils/catchAsync');
-const APIFeatures = require('../utils/apiFeatures');
-const AppError = require('../utils/appError');
 
 // --------------------- VARIABLES ------------------
 
