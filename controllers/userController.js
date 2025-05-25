@@ -10,64 +10,10 @@ const handlerFactory = require('../utils/handlerFactory');
 
 //-------------------- HANDLER FUNCTIONS ------------------------
 
-// Will return all users from the DB, with a field called "results" that equates to the total number of results return. (2 documents found? results = 2)
 exports.getAllUsers = handlerFactory.getAll(User);
 
-exports.getUser = catchAsync(async (req, res, next) => {
-  // 1. Identify target user
-  const targetID = req.params.id;
+exports.getUser = handlerFactory.getOne(User);
 
-  // 2. query for targetID
-  const targetUser = await User.findById(targetID);
+exports.updateUser = handlerFactory.updateOne(User);
 
-  // 3. Ensure that targetUser was found
-  if (!targetUser) {
-    return next(new AppError('User not found! Please check the user ID', 404));
-  }
-  // 4. Return JSON response
-  return sendJsonRes(res, 200, { user: targetUser });
-});
-
-exports.updateUser = catchAsync(async (req, res, next) => {
-  // 1. Authenticate user
-  const targetID = req.params.id;
-  const userID = req.user._doc._id;
-
-  if (!(userID.toString() === targetID) && !req.user._doc.role.includes('admin')) {
-    return next(new AppError('You do not have permission to update this account!', 401));
-  }
-
-  // 2. Sanatize new data
-  if (!req.body) {
-    return next(new AppError('Please enter new information to update account!', 400));
-  }
-  const cleanBody = filterObj(req.body, 'username', 'email');
-
-  // 3. Find user to change
-  const user = await User.findByIdAndUpdate(targetID, cleanBody, {
-    runValidators: true,
-    // Return the 'new' version of the MongoDB document
-    new: true
-  });
-  // Send json response
-  sendJsonRes(res, 205, { user });
-});
-
-exports.deleteUser = catchAsync(async (req, res, next) => {
-  // 1. Find and delete user resource
-  let selectedId;
-  if (!req.body?.id) {
-    return next(new AppError('Please provide a user ID to delete!', 404));
-  }
-  selectedId = req.body.id;
-
-  // 2. verify permisions to delete selected user
-  if (!req.user._doc.role.includes('admin') && !(req.user.id === selectedId)) {
-    return next(new AppError('You do not have permission to delete this user!', 401));
-  }
-  // 3. Proceed with user account deletion
-  await User.findByIdAndDelete(selectedId);
-
-  // 4. Send json response
-  sendJsonRes(res, 204);
-});
+exports.deleteUser = handlerFactory.deleteOne(User);

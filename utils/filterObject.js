@@ -5,9 +5,9 @@
 const filterObj = (allowedProperties, givenProperties) => {
   const cleanObj = {};
 
-  Object.keys(givenProperties).forEach((key) => {
-    if (allowedProperties.includes(key)) {
-      cleanObj[key] = givenProperties[key];
+  Object.keys(givenProperties).forEach((el) => {
+    if (allowedProperties.includes(el)) {
+      cleanObj[el] = givenProperties[el];
     }
   });
 

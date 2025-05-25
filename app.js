@@ -49,21 +49,25 @@ app.use((err, req, res, next) => {
 
   // Managing validation errors
   if (err.name === 'ValidationError') {
+    console.log(err.stack);
     return sendJsonRes(res, 400, { message });
   }
 
   // Managing MongoDB duplicate-key errors
   if (possibleErrorCode === 11000) {
+    console.log(err.stack);
     return sendJsonRes(res, 400, { message: err.message });
   }
 
   // Managing castErrors
   if (err.name === 'CastError') {
+    console.log(err.stack);
     return sendJsonRes(res, 400, { message: err.message });
   }
 
   // Managing TypeErrors
   if (err.name === 'TypeError') {
+    console.log(err.stack);
     return sendJsonRes(res, 400, { message: err.message });
   }
 

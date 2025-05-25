@@ -45,7 +45,7 @@ exports.getOne = (model) => {
   });
 };
 
-exports.createOne = (model, updatableFields, zodSchema) => {
+exports.createOne = (model, zodSchema, ...updatableFields) => {
   return catchAsync(async (req, res, next) => {
     // Make sure request body is not empty, and that it actually has at least one key!
     if (!req.body || Object.keys(req.body).length === 0) {
@@ -53,18 +53,19 @@ exports.createOne = (model, updatableFields, zodSchema) => {
     }
 
     // Filter the request body
-    const filtered = filterObj(updatableFields, req.body);
+    const filtered = filterObj(...updatableFields, req.body);
 
     // Make sure that there is still data remaining after filtering
     if (!filtered || Object.keys(filtered).length === 0) {
       return next(
         new AppError(
-          'No valid properties received in the request body, please submit a valid property!'
+          'No valid properties received in the request body, please submit a valid property!',
+          400
         )
       );
     }
-    // Validate the request body
-    zodValidator(zodSchema, filtered);
+    // Validate the request bodyvvvvvvvv
+    zodValidator.validateDataTypes(zodSchema, filtered);
 
     // Save the request body
     const doc = await model.create(filtered);
@@ -76,11 +77,9 @@ exports.createOne = (model, updatableFields, zodSchema) => {
   });
 };
 
-exports.updateOne = (model, updatableFields, zodSchema) => {
+exports.updateOne = (model, zodSchema, ...updatableFields) => {
   return catchAsync(async (req, res, next) => {
     // Make sure request body is not empty, and that it actually has at least one key!
-    const bodyData = req.body;
-
     if (!req.body || Object.keys(req.body).length === 0) {
       return next(
         new AppError(
@@ -89,7 +88,6 @@ exports.updateOne = (model, updatableFields, zodSchema) => {
         )
       );
     }
-
     // Filter the request body
     const filtered = filterObj(updatableFields, req.body);
 
@@ -97,12 +95,13 @@ exports.updateOne = (model, updatableFields, zodSchema) => {
     if (!filtered || Object.keys(filtered).length === 0) {
       return next(
         new AppError(
-          'No valid properties received in the request body, please submit a valid property!'
+          'No valid properties received in the request body, please submit a valid property!',
+          400
         )
       );
     }
     // Validate the request body
-    zodValidator(zodSchema, filtered);
+    zodValidator.validateDataTypes(zodSchema, filtered);
 
     const updatedDoc = await model.findByIdAndUpdate(req.params.id, filtered, {
       new: true
