@@ -4,50 +4,25 @@ const JWT = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 const User = require('../models/userModel');
+const handlerFactory = require('../utils/handlerFactory');
 const AppError = require('../utils/appError');
 const sendJsonRes = require('../utils/sendJsonRes');
 const catchAsync = require('../utils/catchAsync');
 
-// ---------------- JWT --------------------
+// ---------------- VARIABLES --------------------
 
 // A function that will create and assign a user a JWT
 
-const createToken = (id) => {
-  const token = JWT.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN
-  });
-  return token;
+const fieldDefinitions = {
+  username: 'string',
+  password: 'string',
+  confirmPassword: 'string',
+  email: 'string'
 };
 
 //-----------  HANDLER FUNCTIONS ---------------
 
-exports.signup = catchAsync(async (req, res, next) => {
-  if (!req.body) {
-    next(new AppError('Please provide a json body!', 400));
-  }
-  const { username, password, email } = req.body;
-
-  if (!username || !password || !email) {
-    return next(
-      new AppError('Please include a valid username, password and email in your request!', 400)
-    );
-  }
-
-  const newUser = await User.create({
-    username: req.body.username,
-    password: req.body.password,
-    confirmPassword: req.body.confirmPassword,
-    email: req.body.email,
-    role: req.body.role
-  });
-
-  const token = createToken(newUser._id);
-
-  sendJsonRes(res, 201, {
-    token,
-    user: newUser
-  });
-});
+exports.signup = handlerFactory.signupUser(User);
 
 exports.login = catchAsync(async (req, res, next) => {
   // 1. Establish function variables

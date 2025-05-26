@@ -56,7 +56,7 @@ exports.validateDataTypes = (schemaObj, dataObjectToValidate) => {
   const validationResults = validationSchema.safeParse(dataObjectToValidate);
 
   // If validation failed, an error is created with the intention to be caught by a "validationError" edge-casing,
-  // where we pass all zod error messages
+  // where we pass all zod error messages ; If error is thrown, encompassing function will exit and request is directed to the error handlers in app.js
 
   if (!validationResults.success) {
     const err = new Error();
@@ -70,5 +70,7 @@ exports.validateDataTypes = (schemaObj, dataObjectToValidate) => {
     console.log(`err.message ---> `, err.message);
     throw err;
   }
+
+  // If validation is successful, no error is thrown and a truthy value is returned
   return true;
 };

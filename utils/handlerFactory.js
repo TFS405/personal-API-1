@@ -45,7 +45,7 @@ exports.getOne = (model) => {
   });
 };
 
-exports.createOne = (model, zodSchema, ...updatableFields) => {
+exports.createOne = (model, zodSchema, ...signupFields) => {
   return catchAsync(async (req, res, next) => {
     // Make sure request body is not empty, and that it actually has at least one key!
     if (!req.body || Object.keys(req.body).length === 0) {
@@ -53,7 +53,7 @@ exports.createOne = (model, zodSchema, ...updatableFields) => {
     }
 
     // Filter the request body
-    const filtered = filterObj(...updatableFields, req.body);
+    const filtered = filterObj(...signupFields, req.body);
 
     // Make sure that there is still data remaining after filtering
     if (!filtered || Object.keys(filtered).length === 0) {
@@ -64,7 +64,7 @@ exports.createOne = (model, zodSchema, ...updatableFields) => {
         )
       );
     }
-    // Validate the request bodyvvvvvvvv
+    // Validate the request body
     zodValidator.validateDataTypes(zodSchema, filtered);
 
     // Save the request body
@@ -119,5 +119,48 @@ exports.deleteOne = (model) => {
     }
 
     sendJsonRes(res, 204, {});
+  });
+};
+
+// --------- USER-BASED HANDLER FUNCTIONS -------------
+
+exports.signupUser = (model, zodSchemaObj, ...signupFields) => {
+  return catchAsync(async (req, res, next) => {
+    // Checking to see if there is indeed a request body
+    if (!req.body) {
+      return next(
+        new AppError('Please provide a username, email, password and password confirmation!', 400)
+      );
+    }
+    // Creating a validation schema to validate input data
+    const validationSchema = zodValidator.createzodSchemaObj(validationSchema);
+
+    // Filtering out disallowed properties from input data
+    const filtered = filterObj(...signupFields, req.body);
+    // Checking if there is still data remaining in "filtered" after filtering
+    if (Object.keys(filtered).length === 0) {
+      return next(
+        new AppError(
+          'No valid data was received, please enter a valid username, email and password',
+          400
+        )
+      );
+    }
+    // Validating input data from request body against validation schema
+    zodValidator.validateDataTypes(validationSchema, filtered);
+
+    // Checking if the required signup properties still exist after filtering and validating
+    if (
+      Object.keys(filtered).length !== signupFields.length ||
+      !signupFields.every((el) => el in filtered)
+    ) {
+      return next(
+        new AppError(
+          `Data is missing one or more required fields! Required fields: ${signupFields}`
+        )
+      );
+    }
+
+    const newUser = await User.create(filtered);
   });
 };
