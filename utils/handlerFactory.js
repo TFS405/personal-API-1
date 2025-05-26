@@ -6,6 +6,8 @@ const AppError = require('./appError');
 const APIFeatures = require('./apiFeatures');
 const filterObj = require('./filterObject.js');
 const zodValidator = require('./zodValidator.js');
+const tokenutils = require('./tokenUtils.js');
+const bcrypt = require('bcrypt');
 
 // ----------- HANDLER FUNCTIONS ----------------
 
@@ -126,18 +128,18 @@ exports.deleteOne = (model) => {
 
 exports.signupUser = (model, zodSchemaObj, ...signupFields) => {
   return catchAsync(async (req, res, next) => {
-    // Checking to see if there is indeed a request body
+    // Checking to see if there is indeed a request body.
     if (!req.body) {
       return next(
         new AppError('Please provide a username, email, password and password confirmation!', 400)
       );
     }
-    // Creating a validation schema to validate input data
-    const validationSchema = zodValidator.createzodSchemaObj(validationSchema);
+    // Creating a validation schema to validate input data.
+    const validationSchema = zodValidator.createzodSchemaObj(zodSchemaObj);
 
-    // Filtering out disallowed properties from input data
+    // Filtering out disallowed properties from input data.
     const filtered = filterObj(...signupFields, req.body);
-    // Checking if there is still data remaining in "filtered" after filtering
+    // Checking if there is still data remaining in "filtered" after filtering.
     if (Object.keys(filtered).length === 0) {
       return next(
         new AppError(
@@ -146,10 +148,10 @@ exports.signupUser = (model, zodSchemaObj, ...signupFields) => {
         )
       );
     }
-    // Validating input data from request body against validation schema
+    // Validating input data from request body against validation schema.
     zodValidator.validateDataTypes(validationSchema, filtered);
 
-    // Checking if the required signup properties still exist after filtering and validating
+    // Checking if the required signup properties still exist after filtering and validating.
     if (
       Object.keys(filtered).length !== signupFields.length ||
       !signupFields.every((el) => el in filtered)
@@ -160,7 +162,64 @@ exports.signupUser = (model, zodSchemaObj, ...signupFields) => {
         )
       );
     }
+    // Creating user doc after filtering and validating input data.
+    const newUser = await model.create(filtered);
 
-    const newUser = await User.create(filtered);
+    // Creating JWT
+    const token = tokenutils.signToken(newUser._id);
+
+    // Send json response with token included
+    return sendJsonRes(res, 201, {
+      data: newUser,
+      token
+    });
+  });
+};
+
+exports.loginUser = (model) => {
+  return catchAsync(async (req, res, next) => {
+    // Check for presence of email and password in the request body.
+    if (!req.body?.password || !req.body?.email) {
+      return next(new AppError('Please provide an email and password to login!', 400));
+    }
+    // Assign email and password from the request body to the submittedEmail and submittedPassword variables, then trim them.
+    const { email, password } = req.body;
+    const submittedEmail = email.trim();
+    const submittedPassword = password.trim();
+
+    // Checking if the submittedEmail and submittedPassword variables are empty.
+    if (submittedEmail === '' || submittedPassword === '') {
+      return next(
+        new AppError(
+          'Email or password cannot be empty! Please enter a valid email and password!',
+          400
+        )
+      );
+    }
+    // Retrieving the targeted user doc.
+    const user = await model.findOne({ email: submittedEmail }).select('+password');
+
+    // Checking if the user doc was successfully found.
+    if (!user) {
+      return next(
+        new AppError(
+          'No user was found with that email. Please try again or create a new account.',
+          404
+        )
+      );
+    }
+
+    // Comparing the submittedPassword with the saved password in the user doc.
+    const isPasswordCorrect = await bcrypt.compare(submittedPassword, user.password);
+
+    // Checking if submittedPassword is correct
+    if (!isPasswordCorrect) {
+      return next(new AppError('Incorrect password! Please try again!', 401));
+    }
+
+    // If all credentials are correct and present, send json response with JWT
+    const token = tokenutils.signToken(user.id);
+
+    return sendJsonRes(res, 200, { token });
   });
 };
