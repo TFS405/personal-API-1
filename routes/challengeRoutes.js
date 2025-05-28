@@ -20,7 +20,9 @@ router
 router
   .route('/:id')
   .get(protect(), challengeController.getChallenge)
-  .patch(protect(), challengeController.updateChallenge)
-  .delete(protect(), restrictTo('admin'), challengeController.deleteChallenge);
+  .patch(protect('role'), restrictTo('admin'), challengeController.updateChallenge)
+  .delete(protect('role'), restrictTo('admin'), challengeController.deleteChallenge);
+
 // --------------- MODULE EXPORT -----------------
+
 module.exports = router;
