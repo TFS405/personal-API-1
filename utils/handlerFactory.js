@@ -47,7 +47,7 @@ exports.getOne = (model) => {
   });
 };
 
-exports.createOne = (model, zodSchema, ...signupFields) => {
+exports.createOne = (model, zodSchema, ...fieldWhiteList) => {
   return catchAsync(async (req, res, next) => {
     // Make sure request body is not empty, and that it actually has at least one key!
     if (!req.body || Object.keys(req.body).length === 0) {
@@ -55,7 +55,7 @@ exports.createOne = (model, zodSchema, ...signupFields) => {
     }
 
     // Filter the request body
-    const filtered = filterObj(...signupFields, req.body);
+    const filtered = filterObj(...fieldWhiteList, req.body);
 
     // Make sure that there is still data remaining after filtering
     if (!filtered || Object.keys(filtered).length === 0) {
@@ -79,7 +79,7 @@ exports.createOne = (model, zodSchema, ...signupFields) => {
   });
 };
 
-exports.updateOne = (model, zodSchema, ...updatableFields) => {
+exports.updateOne = (model, zodSchema, fieldWhiteList, partial = false) => {
   return catchAsync(async (req, res, next) => {
     // Make sure request body is not empty, and that it actually has at least one key!
     if (!req.body || Object.keys(req.body).length === 0) {
@@ -91,7 +91,7 @@ exports.updateOne = (model, zodSchema, ...updatableFields) => {
       );
     }
     // Filter the request body
-    const filtered = filterObj(updatableFields, req.body);
+    const filtered = filterObj(fieldWhiteList, req.body);
 
     // Make sure that there is still data remaining after filtering
     if (!filtered || Object.keys(filtered).length === 0) {
@@ -103,7 +103,7 @@ exports.updateOne = (model, zodSchema, ...updatableFields) => {
       );
     }
     // Validate the request body
-    zodValidator.validateDataTypes(zodSchema, filtered);
+    zodValidator.validateDataTypes(zodSchema, filtered, partial);
 
     const updatedDoc = await model.findByIdAndUpdate(req.params.id, filtered, {
       new: true
@@ -126,7 +126,7 @@ exports.deleteOne = (model) => {
 
 // --------- USER-BASED HANDLER FUNCTIONS -------------
 
-exports.signupUser = (model, zodSchemaObj, ...signupFields) => {
+exports.signupUser = (model, zodSchemaObj, fieldWhiteList) => {
   return catchAsync(async (req, res, next) => {
     // Checking to see if there is indeed a request body.
     if (!req.body) {
@@ -134,11 +134,9 @@ exports.signupUser = (model, zodSchemaObj, ...signupFields) => {
         new AppError('Please provide a username, email, password and password confirmation!', 400)
       );
     }
-    // Creating a validation schema to validate input data.
-    const validationSchema = zodValidator.createzodSchemaObj(zodSchemaObj);
-
     // Filtering out disallowed properties from input data.
-    const filtered = filterObj(...signupFields, req.body);
+    const filtered = filterObj(fieldWhiteList, req.body);
+
     // Checking if there is still data remaining in "filtered" after filtering.
     if (Object.keys(filtered).length === 0) {
       return next(
@@ -149,16 +147,17 @@ exports.signupUser = (model, zodSchemaObj, ...signupFields) => {
       );
     }
     // Validating input data from request body against validation schema.
-    zodValidator.validateDataTypes(validationSchema, filtered);
+    zodValidator.validateDataTypes(zodSchemaObj, filtered);
 
     // Checking if the required signup properties still exist after filtering and validating.
     if (
-      Object.keys(filtered).length !== signupFields.length ||
-      !signupFields.every((el) => el in filtered)
+      Object.keys(filtered).length !== fieldWhiteList.length ||
+      !fieldWhiteList.every((el) => el in filtered)
     ) {
       return next(
         new AppError(
-          `Data is missing one or more required fields! Required fields: ${signupFields}`
+          `Data is missing one or more required fields! Required fields: ${fieldWhiteList}`,
+          400
         )
       );
     }

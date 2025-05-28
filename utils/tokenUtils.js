@@ -1,6 +1,6 @@
 // ---------- MODULE IMPORTS -----------
 
-const JWT = require('jwt');
+const JWT = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 // --------- FUNCTIONS -----------------

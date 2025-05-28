@@ -1,17 +1,18 @@
 // ---------------- IMPORTING MODULES ------------------
 
-const zod = require('../utils/zodValidator.js');
+const { z } = require('zod');
+
 const Challenge = require('../models/challengesModel');
 const handlerFactory = require('../utils/handlerFactory');
 
 // --------------------- VARIABLES ------------------
 
 // Whitelist of properties (excluding "challengeSolution (which is still approved)")
-const updatableFields = {
-  category: 'string',
-  difficulty: 'string',
-  challengeTask: 'string',
-  challengeSolution: 'string'
+const schemaShape = {
+  category: z.string(),
+  difficulty: z.string(),
+  challengeTask: z.string(),
+  challengeSolution: z.string()
 };
 
 // -------------- CONTROLLER FUNCTIONS --------------
@@ -22,14 +23,14 @@ exports.getChallenge = handlerFactory.getOne(Challenge);
 
 exports.createChallenge = handlerFactory.createOne(
   Challenge,
-  zod.createValidationSchema(updatableFields),
-  Object.keys(updatableFields)
+  schemaShape,
+  Object.keys(schemaShape)
 );
 
 exports.updateChallenge = handlerFactory.updateOne(
   Challenge,
-  zod.createValidationSchema(updatableFields, true),
-  ...Object.keys(updatableFields)
+  schemaShape,
+  Object.keys(schemaShape)
 );
 
 exports.deleteChallenge = handlerFactory.deleteOne(Challenge);

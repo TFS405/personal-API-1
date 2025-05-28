@@ -2,11 +2,11 @@
 
 // ------------- FUNCTION ---------------------
 
-const filterObj = (allowedProperties, givenProperties) => {
+const filterObj = (fieldWhiteList, givenProperties) => {
   const cleanObj = {};
 
   Object.keys(givenProperties).forEach((el) => {
-    if (allowedProperties.includes(el)) {
+    if (fieldWhiteList.includes(el)) {
       cleanObj[el] = givenProperties[el];
     }
   });

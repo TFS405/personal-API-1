@@ -14,13 +14,13 @@ const router = express.Router();
 
 router
   .route('/')
-  .get(protect, challengeController.getAllChallenges)
-  .post(protect, restrictTo('admin'), challengeController.createChallenge);
+  .get(protect(), challengeController.getAllChallenges)
+  .post(protect('role'), restrictTo('admin'), challengeController.createChallenge);
 
 router
   .route('/:id')
-  .get(protect, challengeController.getChallenge)
-  .patch(protect, challengeController.updateChallenge)
-  .delete(protect, restrictTo('admin'), challengeController.deleteChallenge);
+  .get(protect(), challengeController.getChallenge)
+  .patch(protect(), challengeController.updateChallenge)
+  .delete(protect(), restrictTo('admin'), challengeController.deleteChallenge);
 // --------------- MODULE EXPORT -----------------
 module.exports = router;
