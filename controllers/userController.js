@@ -20,6 +20,6 @@ exports.getAllUsers = handlerFactory.getAll(User);
 
 exports.getUser = handlerFactory.getOne(User);
 
-exports.updateUser = handlerFactory.updateOne(User, schemaShape, Object.keys(schemaShape), true);
+exports.updateUser = handlerFactory.updateOne(User, schemaShape, { isZodSchemaPartial: true });
 
 exports.deleteUser = handlerFactory.deleteOne(User);

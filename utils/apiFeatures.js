@@ -1,5 +1,5 @@
 class APIFeatures {
-  constructor(query, queryString) {
+  constructor(query = {}, queryString = {}) {
     this.query = query;
     this.queryString = queryString;
   }
@@ -21,6 +21,26 @@ class APIFeatures {
 
     return this;
   }
+
+  async patchDoc(model, identifier, hiddenFieldsToSelect = [], updateObj) {
+    let fieldSelection;
+
+    if (hiddenFieldsToSelect.length > 0) {
+      fieldSelection = hiddenFieldsToSelect.map((field) => `+${field}`).join(' ');
+    }
+
+    this.doc = await model.findById(identifier).select(fieldSelection);
+
+    Object.keys(updateObj).forEach((key) => {
+      this.doc[key] = updateObj[key];
+    });
+
+    await this.doc.save();
+
+    return this.doc;
+  }
 }
+
+// ----------- EXPORT ----------------------------
 
 module.exports = APIFeatures;

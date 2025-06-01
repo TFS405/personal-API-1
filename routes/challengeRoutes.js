@@ -23,6 +23,7 @@ router
   .patch(protect('role'), restrictTo('admin'), challengeController.updateChallenge)
   .delete(protect('role'), restrictTo('admin'), challengeController.deleteChallenge);
 
+router.route('/:id/submit-solution').patch(protect(), challengeController.solveChallenge);
 // --------------- MODULE EXPORT -----------------
 
 module.exports = router;

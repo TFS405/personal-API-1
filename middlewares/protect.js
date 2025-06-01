@@ -11,13 +11,13 @@ const catchAsync = require('../utils/catchAsync');
 
 const protect = (...hiddenFieldsToInclude) => {
   return catchAsync(async (req, res, next) => {
-    // VERIFY TOKEN EXISTENCE
+    // Verify token existence.
     let token;
     if (req?.headers?.authorization?.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
 
-    // VERIFY TOKEN VALIDITY
+    // Verify token validity.
     if (!token) {
       return next(new AppError(' You are not logged in! Please provide a JWT', 401));
     }
@@ -32,10 +32,10 @@ const protect = (...hiddenFieldsToInclude) => {
 
     const { id, iat } = decoded;
 
-    // Check to see if user still exist
+    // Check to see if user still exist.
     let query = User.findById(id);
 
-    // Checking for value in selectedFields
+    // Checking for value in selectedFields.
     if (hiddenFieldsToInclude.length > 0) {
       const fieldSelection = hiddenFieldsToInclude.map((field) => `+${field}`).join(' ');
       query = query.select(fieldSelection);
@@ -47,7 +47,7 @@ const protect = (...hiddenFieldsToInclude) => {
       return next(new AppError('User not found!', 404));
     }
 
-    // Check if password was changed after JWT was issued
+    // Check if password was changed after JWT was issued.
     if (!user.changedPasswordAfter(iat)) {
       return next(new AppError('Password was recently changed! Please login again!', 401));
     }
