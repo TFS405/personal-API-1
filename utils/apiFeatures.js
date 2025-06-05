@@ -1,3 +1,10 @@
+// ----------- VARIABLES ---------------
+
+// const queryComparisonOperators = ['eq', 'ne', 'gt', 'gte', 'lt', 'lte'];
+// const queryParams = ['page', 'limit', 'sort', 'skip', 'fields', 'exclude'];
+
+// ---------- CLASS CREATION --------------------
+
 class APIFeatures {
   constructor(query = {}, queryString = {}) {
     this.query = query;
@@ -22,25 +29,42 @@ class APIFeatures {
     return this;
   }
 
-  async patchDoc(model, identifier, hiddenFieldsToSelect = [], updateObj) {
-    let fieldSelection;
+  async getAll(model) {
+    this.query = model.find();
+
+    this.model = model;
+
+    return this;
+  }
+
+  async getOne(model, identifier, hiddenFieldsToSelect = []) {
+    this.query = model.findById(identifier);
 
     if (hiddenFieldsToSelect.length > 0) {
-      fieldSelection = hiddenFieldsToSelect.map((field) => `+${field}`).join(' ');
+      const fieldSelection = hiddenFieldsToSelect.map((field) => `+${field}`).join(' ');
+
+      this.query = this.query.select(fieldSelection);
+
+      return this;
     }
 
-    this.doc = await model.findById(identifier).select(fieldSelection);
+    return this;
+  }
 
-    Object.keys(updateObj).forEach((key) => {
-      this.doc[key] = updateObj[key];
-    });
+  async execute(typeOfQuery = 'get', updateObj = {}) {
+    if (typeOfQuery === 'update') {
+      this.doc = await this.query;
 
-    await this.doc.save();
+      Object.keys(updateObj).forEach((key) => {
+        this.doc[key] = updateObj[key];
+      });
+
+      await this.doc.save();
+    }
 
     return this.doc;
   }
 }
-
 // ----------- EXPORT ----------------------------
 
 module.exports = APIFeatures;

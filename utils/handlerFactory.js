@@ -84,8 +84,9 @@ exports.updateOne = (
   zodSchema,
   {
     isZodSchemaPartial = false,
+    selectHiddenFields: fieldsToSelectArray = {},
     configErrorMessage: { emptyBodyString, noValidFieldsString } = {},
-    configJsonRes: { selectJsonResFields } = []
+    configJsonRes: fieldsToSendArray = []
   } = {}
 ) => {
   return catchAsync(async (req, res, next) => {
@@ -122,28 +123,22 @@ exports.updateOne = (
       isZodSchemaPartial
     );
 
-    // Retrieve and update the requested doc.
-    const query = new APIFeatures();
+    // Create query object.
+    const query = await new APIFeatures().getOne(model, req.params.id, fieldsToSelectArray);
 
-    const doc = await query.patchDoc(
-      model,
-      req.params.id,
-      ['challengeAttempt', 'challengeSolution'],
-      filtered
-    );
+    // Execute after saving new data to document.
+    const doc = await query.execute('update', filtered);
 
-    // If json config options are present, build an object with the given fields before sending a json response including those fields.
-    const selectedFields = {};
-
-    if (selectJsonResFields.length > 0) {
-      selectJsonResFields.forEach((field) => {
-        selectedFields[field] = doc[field];
-      });
-      return sendJsonRes(res, 200, { ...selectedFields });
-    }
+    // Extract data to send in JSON response.
+    const JSONResFields = fieldsToSendArray.reduce((acc, field) => {
+      if (field in doc) {
+        acc[field] = doc[field];
+      }
+      return acc;
+    }, {});
 
     // Send back the default json response.
-    return sendJsonRes(res, 200, { data: doc });
+    return sendJsonRes(res, 200, { data: JSONResFields });
   });
 };
 
