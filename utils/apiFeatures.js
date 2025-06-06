@@ -29,17 +29,7 @@ class APIFeatures {
     return this;
   }
 
-  async getAll(model) {
-    this.query = model.find();
-
-    this.model = model;
-
-    return this;
-  }
-
-  async getOne(model, identifier, hiddenFieldsToSelect = []) {
-    this.query = model.findById(identifier);
-
+  async selectFields(hiddenFieldsToSelect = []) {
     if (hiddenFieldsToSelect.length > 0) {
       const fieldSelection = hiddenFieldsToSelect.map((field) => `+${field}`).join(' ');
 
@@ -62,6 +52,9 @@ class APIFeatures {
       await this.doc.save();
     }
 
+    if (typeOfQuery === 'get') {
+      this.doc = await this.query;
+    }
     return this.doc;
   }
 }

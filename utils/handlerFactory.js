@@ -13,13 +13,8 @@ const bcrypt = require('bcrypt');
 
 exports.getAll = (model) => {
   return catchAsync(async (req, res, next) => {
-    // Applying query parameters to search query
-    const features = new APIFeatures(model.find(), req.query).filter();
-
-    // Executing search query (that has been modified by query paremeters such as filter, sort, limit, paginate)
-    const docs = await features.query;
-    // Obtaining  the amount of results returned from search query
-    const results = docs.length;
+    // Creating a query, then applying query parameters.
+    const docs = await new APIFeatures(model.find(), req.query).filter().execute();
 
     // Making sure that "docs" is not an empty / falsy value.
     if (!docs || docs.length === 0) {
@@ -27,6 +22,10 @@ exports.getAll = (model) => {
         new AppError(`Search query returned no results! Please check your search query!`, 404)
       );
     }
+
+    // Obtaining the length, or the amount of documents returned from the query.
+    const results = docs.length();
+
     // Sending JSON response
     sendJsonRes(res, 200, {
       results,
@@ -35,9 +34,12 @@ exports.getAll = (model) => {
   });
 };
 
-exports.getOne = (model) => {
+exports.getOne = (model, fieldsToSelectArray) => {
   return catchAsync(async (req, res, next) => {
-    const doc = await model.findById(req.params.id);
+    // Creating a query, possibly selecting hidden fields then executing it.
+    const doc = await new APIFeatures(model.findById(req.params.id), req.query)
+      .selectFields(fieldsToSelectArray)
+      .execute();
 
     if (!doc) {
       return next(new AppError('No resource found with that ID!', 404));
@@ -124,7 +126,7 @@ exports.updateOne = (
     );
 
     // Create query object.
-    const query = await new APIFeatures().getOne(model, req.params.id, fieldsToSelectArray);
+    const query = await new APIFeatures(model.get(), req.query).getOne(fieldsToSelectArray);
 
     // Execute after saving new data to document.
     const doc = await query.execute('update', filtered);
