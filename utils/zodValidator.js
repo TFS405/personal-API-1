@@ -6,7 +6,7 @@ const { z } = require('zod');
 
 // This function will take in a schema that defines properties and their expected data-types, and will also take in an object with properties to
 // validate against those matching properties in the schema and their data-types.
-exports.validateDataTypes = (schemaObj, dataObjectToValidate, partial = false) => {
+exports.validateOrThrow = (schemaObj, dataObjectToValidate, partial = false) => {
   // Creating the zod schema
   const validationSchema = partial ? z.object(schemaObj).partial() : z.object(schemaObj);
 

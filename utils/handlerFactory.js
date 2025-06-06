@@ -86,8 +86,8 @@ exports.updateOne = (
   zodSchema,
   {
     isZodSchemaPartial = false,
-    selectHiddenFields: fieldsToSelectArray = {},
-    configErrorMessage: { emptyBodyString, noValidFieldsString } = {},
+    selectHiddenFields: fieldsToSelectArray = [],
+    configErrorMessage: { emptyBodyString, noValidFieldsString, missingDocString } = {},
     configJsonRes: fieldsToSendArray = []
   } = {}
 ) => {
@@ -119,25 +119,41 @@ exports.updateOne = (
     }
 
     // Validate the request body. If Validation fails then an error is thrown inside of validateDataTypes, or else function proceeds as normal.
-    const areDataTypesValid = zodValidator.validateDataTypes(
-      zodSchema,
-      filtered,
-      isZodSchemaPartial
-    );
+    zodValidator.validateOrThrow(zodSchema, filtered, isZodSchemaPartial);
 
-    // Create query object.
-    const query = await new APIFeatures(model.get(), req.query).getOne(fieldsToSelectArray);
+    // Checking for selected fields.
+    let fieldSelection;
+    if (fieldsToSelectArray.length > 0) {
+      fieldSelection = fieldsToSelectArray.map((field) => `+${field}`).join(' ');
+    }
 
-    // Execute after saving new data to document.
-    const doc = await query.execute('update', filtered);
+    // Create and await the query update object.
+    let query = model.findByIdAndUpdate(req.params.id, filtered, {
+      new: true,
+      runValidators: true
+    });
+
+    if (fieldSelection) {
+      query = query.select(fieldSelection);
+    }
+
+    const doc = await query;
+
+    if (!doc) {
+      return next(new AppError(missingDocString ?? 'No resource found with that ID.', 404));
+    }
 
     // Extract data to send in JSON response.
-    const JSONResFields = fieldsToSendArray.reduce((acc, field) => {
-      if (field in doc) {
-        acc[field] = doc[field];
-      }
-      return acc;
-    }, {});
+
+    const JSONResFields =
+      fieldsToSelectArray.length > 0
+        ? fieldsToSendArray.reduce((acc, field) => {
+            if (field in doc) {
+              acc[field] = doc[field];
+            }
+            return acc;
+          }, {})
+        : doc;
 
     // Send back the default json response.
     return sendJsonRes(res, 200, { data: JSONResFields });

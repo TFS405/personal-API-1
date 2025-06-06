@@ -41,20 +41,8 @@ class APIFeatures {
     return this;
   }
 
-  async execute(typeOfQuery = 'get', updateObj = {}) {
-    if (typeOfQuery === 'update') {
-      this.doc = await this.query;
-
-      Object.keys(updateObj).forEach((key) => {
-        this.doc[key] = updateObj[key];
-      });
-
-      await this.doc.save();
-    }
-
-    if (typeOfQuery === 'get') {
-      this.doc = await this.query;
-    }
+  async execute() {
+    this.doc = await this.query;
     return this.doc;
   }
 }
