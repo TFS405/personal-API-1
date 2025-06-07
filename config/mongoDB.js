@@ -3,15 +3,9 @@
 const mongoose = require('mongoose');
 
 // Will connect to MongoDB, then immediately initate a server.
-const connectDB = async (port) => {
-  try {
-    await mongoose.connect(process.env.DB_CONNECTION_STRING);
-    console.log('DB Connected! 🚀');
-  } catch (err) {
-    console.log('An error occured! 🚫');
-    console.log(err);
-    process.exit(1);
-  }
+const connectDB = async () => {
+  await mongoose.connect(process.env.DB_CONNECTION_STRING);
+  console.log('DB Connected! 🚀');
 };
 
 // ---------------- MODULE EXPORT ------------------
