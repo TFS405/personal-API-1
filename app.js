@@ -25,12 +25,15 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 // -------------- ROUTES ------------------
-
 app.use('/users', userRouter);
 
 app.use('/challenges', challengeRouter);
 
-// ------------- ERROR HANDLERS ---------------
+app.use((req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+// ------------- ERROR HANDLERS --------
 
 app.use((err, req, res, next) => {
   let message;
@@ -38,13 +41,13 @@ app.use((err, req, res, next) => {
     message = err.message;
   }
 
-  if (err instanceof AppError) {
-    return sendJsonRes(res, err.statusCode, { message: err.message });
-  }
   let possibleErrorCode;
-
   if (err.code ?? err.cause?.code) {
     possibleErrorCode = err.code ?? err.cause.code;
+  }
+
+  if (err instanceof AppError) {
+    return sendJsonRes(res, err.statusCode, { message: err.message });
   }
 
   // Managing validation errors

@@ -24,7 +24,7 @@ exports.getAll = (model) => {
     }
 
     // Obtaining the length, or the amount of documents returned from the query.
-    const results = docs.length();
+    const results = docs.length;
 
     // Sending JSON response
     sendJsonRes(res, 200, {

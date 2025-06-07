@@ -29,7 +29,7 @@ class APIFeatures {
     return this;
   }
 
-  async selectFields(hiddenFieldsToSelect = []) {
+  selectFields(hiddenFieldsToSelect = []) {
     if (hiddenFieldsToSelect.length > 0) {
       const fieldSelection = hiddenFieldsToSelect.map((field) => `+${field}`).join(' ');
 
