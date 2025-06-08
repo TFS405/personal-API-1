@@ -23,7 +23,7 @@ const userSchema = new Schema({
   confirmPassword: {
     type: String,
     required: [true, 'Please confirm your password!'],
-    select: true,
+    select: false,
     validate: {
       validator: function (el) {
         return el === this.password;
@@ -59,7 +59,7 @@ userSchema.methods.toJSON = function () {
   return userObject;
 };
 
-userSchema.methods.changedPasswordAfter = async function (iat) {
+userSchema.methods.changedPasswordAfter = function (iat) {
   const passwordChangeTimestamp = this.passwordChangedAt
     ? parseInt(this.passwordChangedAt.getTime() / 1000, 10)
     : null;
