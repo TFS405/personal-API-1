@@ -44,11 +44,15 @@ const userSchema = new Schema({
   role: {
     type: String,
     default: 'user',
+    enum: {
+      values: ['user', 'admin'],
+      message: 'Role must be either user or admin'
+    },
     select: false
   }
 });
 
-// ------------------ CUSTOM SCHEMA MODELS --------------
+// ------------------ CUSTOM SCHEMA METHODS --------------
 
 // This is overwriting a pre-established mongoose model method to remove specific fields from ever being returned inside any JSON responses.
 userSchema.methods.toJSON = function () {
