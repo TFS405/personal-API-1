@@ -212,7 +212,7 @@ exports.signupUser = (model, zodSchemaObj, fieldWhiteListArray) => {
     const newUser = await model.create(filtered);
 
     // Creating JWT
-    const token = tokenutils.signToken(newUser._id);
+    const token = tokenutils.signJWT(newUser._id);
 
     // Send json response with token included
     return sendJsonRes(res, 201, {
@@ -264,7 +264,7 @@ exports.loginUser = (model) => {
     }
 
     // If all credentials are correct and present, send json response with JWT
-    const token = tokenutils.signToken(user.id);
+    const token = tokenutils.signJWT(user.id);
 
     return sendJsonRes(res, 200, { token });
   });

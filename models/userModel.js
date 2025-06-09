@@ -49,7 +49,9 @@ const userSchema = new Schema({
       message: 'Role must be either user or admin'
     },
     select: false
-  }
+  },
+  passwordResetToken: String,
+  passwordResetTokenExpiration: Date
 });
 
 // ------------------ CUSTOM SCHEMA METHODS --------------
