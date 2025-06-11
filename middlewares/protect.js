@@ -48,7 +48,7 @@ const protect = (...hiddenFieldsToInclude) => {
     }
 
     // Check if password was changed after JWT was issued.
-    if (!user.changedPasswordAfter(iat)) {
+    if (user.changedPasswordAfter(iat)) {
       return next(new AppError('Password was recently changed! Please login again!', 401));
     }
 
