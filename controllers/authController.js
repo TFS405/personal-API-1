@@ -13,7 +13,7 @@ const schemaShape = {
   username: z.string(),
   email: z.string(),
   password: z.string(),
-  confirmPassword: z.string()
+  confirmPassword: z.string(),
 };
 
 //-----------  HANDLER FUNCTIONS ---------------
@@ -21,3 +21,5 @@ const schemaShape = {
 exports.signup = handlerFactory.signupUser(User, schemaShape, Object.keys(schemaShape));
 
 exports.login = handlerFactory.loginUser(User);
+
+exports.forgotPassword = handlerFactory.forgotPassword(User);

@@ -12,10 +12,13 @@ const router = express.Router();
 
 // ------------ ROUTES -----------------
 
+router.route('/').get(protect(), userController.getAllUsers);
+
 router.route('/signup').post(authController.signup);
 router.route('/login').post(authController.login);
 
-router.route('/').get(protect(), userController.getAllUsers);
+router.route('/forgotPassword').post(authController.forgotPassword);
+// router.route('/resetPassword/:resetToken').patch(authController.resetPassword);
 
 router
   .route('/:id')

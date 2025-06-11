@@ -6,8 +6,10 @@ const AppError = require('./appError');
 const APIFeatures = require('./apiFeatures');
 const filterObj = require('./filterObject.js');
 const zodValidator = require('./zodValidator.js');
+const validator = require('validator');
 const tokenutils = require('./tokenUtils.js');
 const bcrypt = require('bcrypt');
+const sendEmail = require('../utils/email.js');
 
 // ----------- HANDLER FUNCTIONS ----------------
 
@@ -19,7 +21,7 @@ exports.getAll = (model) => {
     // Making sure that "docs" is not an empty / falsy value.
     if (!docs || docs.length === 0) {
       return next(
-        new AppError(`Search query returned no results! Please check your search query!`, 404)
+        new AppError(`Search query returned no results! Please check your search query!`, 404),
       );
     }
 
@@ -29,7 +31,7 @@ exports.getAll = (model) => {
     // Sending JSON response
     sendJsonRes(res, 200, {
       results,
-      data: docs
+      data: docs,
     });
   });
 };
@@ -64,8 +66,8 @@ exports.createOne = (model, zodSchema, ...fieldWhiteListArray) => {
       return next(
         new AppError(
           'No valid properties received in the request body, please submit a valid property!',
-          400
-        )
+          400,
+        ),
       );
     }
     // Validate the request body
@@ -76,7 +78,7 @@ exports.createOne = (model, zodSchema, ...fieldWhiteListArray) => {
 
     // Return JSON response
     sendJsonRes(res, 201, {
-      data: { doc }
+      data: { doc },
     });
   });
 };
@@ -88,8 +90,8 @@ exports.updateOne = (
     isZodSchemaPartial = false,
     selectHiddenFields: fieldsToSelectArray = [],
     configErrorMessage: { emptyBodyString, noValidFieldsString, missingDocString } = {},
-    configJsonRes: fieldsToSendArray = []
-  } = {}
+    configJsonRes: fieldsToSendArray = [],
+  } = {},
 ) => {
   return catchAsync(async (req, res, next) => {
     //
@@ -99,8 +101,8 @@ exports.updateOne = (
         new AppError(
           emptyBodyString ??
             `Request body is empty. Please include data in the request body to successfully update!`,
-          400
-        )
+          400,
+        ),
       );
     }
 
@@ -113,8 +115,8 @@ exports.updateOne = (
         new AppError(
           noValidFieldsString ??
             'No valid properties received in the request body, please submit a valid property!',
-          400
-        )
+          400,
+        ),
       );
     }
 
@@ -130,7 +132,7 @@ exports.updateOne = (
     // Create and await the query update object.
     let query = model.findByIdAndUpdate(req.params.id, filtered, {
       new: true,
-      runValidators: true
+      runValidators: true,
     });
 
     if (fieldSelection) {
@@ -178,7 +180,7 @@ exports.signupUser = (model, zodSchemaObj, fieldWhiteListArray) => {
     // Checking to see if there is indeed a request body.
     if (!req.body) {
       return next(
-        new AppError('Please provide a username, email, password and password confirmation!', 400)
+        new AppError('Please provide a username, email, password and password confirmation!', 400),
       );
     }
     // Filtering out disallowed properties from input data.
@@ -189,8 +191,8 @@ exports.signupUser = (model, zodSchemaObj, fieldWhiteListArray) => {
       return next(
         new AppError(
           'No valid data was received, please enter a valid username, email and password',
-          400
-        )
+          400,
+        ),
       );
     }
     // Validating input data from request body against validation schema.
@@ -204,8 +206,8 @@ exports.signupUser = (model, zodSchemaObj, fieldWhiteListArray) => {
       return next(
         new AppError(
           `Data is missing one or more required fields! Required fields: ${fieldWhiteListArray}`,
-          400
-        )
+          400,
+        ),
       );
     }
     // Creating user doc after filtering and validating input data.
@@ -217,7 +219,7 @@ exports.signupUser = (model, zodSchemaObj, fieldWhiteListArray) => {
     // Send json response with token included
     return sendJsonRes(res, 201, {
       data: newUser,
-      token
+      token,
     });
   });
 };
@@ -238,8 +240,8 @@ exports.loginUser = (model) => {
       return next(
         new AppError(
           'Email or password cannot be empty! Please enter a valid email and password!',
-          400
-        )
+          400,
+        ),
       );
     }
     // Retrieving the targeted user doc.
@@ -250,8 +252,8 @@ exports.loginUser = (model) => {
       return next(
         new AppError(
           'No user was found with that email. Please try again or create a new account.',
-          404
-        )
+          404,
+        ),
       );
     }
 
@@ -267,5 +269,64 @@ exports.loginUser = (model) => {
     const token = tokenutils.signJWT(user.id);
 
     return sendJsonRes(res, 200, { token });
+  });
+};
+
+exports.forgotPassword = (model) => {
+  return catchAsync(async (req, res, next) => {
+    // Obtain the given email from the request body.
+    const { email } = req.body;
+
+    // Check if the user submitted an email, or if the email field is undefined in the given request body.
+    if (!email) {
+      return next(new AppError('Please provide an email to reset your password.', 400));
+    }
+    //  Check if the given email is in a valid email format and structure.
+    if (!validator.isEmail(email)) {
+      return next(
+        new AppError('Invalid email address submitted, please provide a valid email address.', 400),
+      );
+    }
+    // Search for a user account associated with the given email.
+    const userDoc = await model.findOne({ email });
+
+    // Check if a user account was found that is associated with the given email, if not then send an error response.
+    if (!userDoc) {
+      return next(new AppError('No document was found with that email, please try again.', 404));
+    }
+    // Create a hex token to be sent to the user's email, and hash it before storing it in the DB.
+    const { token, tokenHash, tokenExpiration } = tokenutils.createTokenAndHashObj(32, 'hex', {
+      expiresIn: 15 * 60 * 1000,
+    });
+
+    // Update the user document in MongoDB to store the hashed version of the reset token, and the time in which the token is set to expire.
+    userDoc.passwordResetToken = tokenHash;
+    userDoc.passwordResetTokenExpiration = tokenExpiration;
+
+    // Save the user document, but deactivate schema validators since not all fields are being updated (only the password reset related fields are).
+    await userDoc.save({ validateBeforeSave: false });
+
+    // Send token to user's email.
+    const resetURL = `${req.protocol}://${req.get('host')}/users/resetPassword/${token}`;
+
+    const message = `Forgot your password? Submit a patch request with your new passowrd and passwordConfirm to: ${resetURL}.
+    \nIf you didn't forget your password, please ignore this email.`;
+
+    // Attempting to send the email.
+    try {
+      await sendEmail({
+        subject: 'Your password reset token (valid for only 15 minutes).',
+        message,
+        to: userDoc.email,
+      });
+
+      sendJsonRes(res, 200, { message: 'Token sent to email.' });
+    } catch (err) {
+      userDoc.passwordResetToken = undefined;
+      userDoc.passwordResetTokenExpiration = undefined;
+      await userDoc.save({ validateBeforeSave: false });
+
+      return next(new AppError('There was an error sending the mail. Try again later!', 500));
+    }
   });
 };
