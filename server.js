@@ -2,14 +2,8 @@
 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
-  if (server) {
-    server.close(() => {
-      console.error('Server closed due to uncaught exception');
-      process.exit(1);
-    });
-  } else {
-    process.exit(1); // Exit immediately if server is not defined
-  }
+
+  process.exit(1); // Exit immediately if server is not defined
 });
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err);
