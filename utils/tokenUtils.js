@@ -8,7 +8,7 @@ const crypto = require('crypto');
 
 exports.signJWT = (id) => {
   const token = JWT.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN
+    expiresIn: process.env.JWT_EXPIRES_IN,
   });
   return token;
 };
