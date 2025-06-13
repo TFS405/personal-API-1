@@ -23,3 +23,4 @@ exports.signup = handlerFactory.signupUser(User, schemaShape, Object.keys(schema
 exports.login = handlerFactory.loginUser(User);
 
 exports.forgotPassword = handlerFactory.forgotPassword(User);
+exports.resetPassword = handlerFactory.resetPassword(User);

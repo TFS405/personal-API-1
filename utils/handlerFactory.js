@@ -9,6 +9,7 @@ const zodValidator = require('./zodValidator.js');
 const validator = require('validator');
 const tokenutils = require('./tokenUtils.js');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const sendEmail = require('../utils/email.js');
 
 // ----------- HANDLER FUNCTIONS ----------------
@@ -328,5 +329,71 @@ exports.forgotPassword = (model) => {
 
       return next(new AppError('There was an error sending the mail. Try again later!', 500));
     }
+  });
+};
+
+exports.resetPassword = (model) => {
+  return catchAsync(async (req, res, next) => {
+    // URL link to send request to recieve  a password reset token.
+    const ForgotPasswordUrl = 'https://127.0.0.1:3000/users/forgotPassword';
+
+    // Hash the given reset token, to be compared to hashed reset token stored in MongoDB.
+    const hashedToken = crypto.createHash('sha256').update(req.params.resetToken).digest('hex');
+
+    // Find user document, using the hashed reset token as the search parameter.
+    const userDoc = await model.findOne({ passwordResetToken: hashedToken }).select('+password');
+
+    // Check if a user document was succesfully found (with a matching, hashed resetPasswordToken).
+    if (!userDoc) {
+      return next(
+        new AppError(
+          `Token is invalid or has expired. Please send another request to reset your password at ${ForgotPasswordUrl}.`,
+          400,
+        ),
+      );
+    }
+
+    // Check if the given reset token is expired.
+    const currentTime = Date.now();
+
+    if (currentTime > userDoc.passwordResetTokenExpiration) {
+      return next(
+        new AppError(
+          `Token is invalid or has expired. Please send another request to reset your password at ${ForgotPasswordUrl}.`,
+          400,
+        ),
+      );
+    }
+
+    // Destructure password and passwordConfirm values from the request body and check if they are defined
+    const { password, passwordConfirm } = req.body;
+
+    if (!password) {
+      return next(new AppError('Please provide a new password!', 400));
+    }
+    if (!passwordConfirm) {
+      return next(new AppError('Please confirm your new password!', 400));
+    }
+
+    //
+    // Check if the given new password is the same as the user's current password. If true, request the user to use a different password.
+    const isPasswordSame = await bcrypt.compare(password, userDoc.password);
+
+    if (isPasswordSame) {
+      return next(
+        new AppError('Your new password must be different from your current password.', 400),
+      );
+    }
+
+    // Remove the password reset token from the user document before consuming the password reset token.
+    userDoc.password = password;
+    userDoc.passwordConfirm = password;
+    (userDoc.passwordResetToken = undefined), (userDoc.passwordResetTokenExpiration = undefined);
+    await userDoc.save();
+
+    // Send a session token to user.
+    const JWT = tokenutils.signJWT(userDoc._id);
+
+    sendJsonRes(res, 200, { JWT });
   });
 };
