@@ -1,16 +1,25 @@
 // ----------- IMPORT MODULES -------------------
 
-const sendJsonRes = require('./sendJsonRes');
-const catchAsync = require('./catchAsync');
-const AppError = require('./appError');
-const APIFeatures = require('./apiFeatures');
-const filterObj = require('./filterObject.js');
+// --- NPM MODULE IMPORTS ---
+
 const zodValidator = require('./zodValidator.js');
 const validator = require('validator');
-const tokenutils = require('./tokenUtils.js');
+
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+
+// --- UTILITY IMPORTS ---
+
+const sendJsonRes = require('./sendJsonRes');
 const sendEmail = require('../utils/email.js');
+
+const APIFeatures = require('./apiFeatures');
+const tokenutils = require('./tokenUtils.js');
+
+const catchAsync = require('./catchAsync');
+const AppError = require('./appError');
+
+const filterObj = require('./filterObject.js');
 
 // ----------- HANDLER FUNCTIONS ----------------
 
