@@ -101,7 +101,7 @@ exports.updateOne = (
       return next(
         new AppError(
           emptyBodyString ??
-            `Request body is empty. Please include data in the request body to successfully update!`,
+            `Request body is empty. Please include data in the request body to successfully update.`,
           400,
         ),
       );
@@ -115,7 +115,7 @@ exports.updateOne = (
       return next(
         new AppError(
           noValidFieldsString ??
-            'No valid properties received in the request body, please submit a valid property!',
+            'No valid properties received in the request body, please submit a valid property.',
           400,
         ),
       );
@@ -395,5 +395,58 @@ exports.resetPassword = (model) => {
     const JWT = tokenutils.signJWT(userDoc._id);
 
     sendJsonRes(res, 200, { JWT });
+  });
+};
+
+exports.updatePassword = (model) => {
+  return catchAsync(async (req, res, next) => {
+    // Obtain user doc from the user's id (which we already have since this will run after a protect middleware).
+    const userDoc = await model.findOne({ _id: req.user.id }).select('+password');
+
+    // Although redundant in some sense, check to make sure a document was returned.
+    if (!userDoc) {
+      return next('This request cannot be proccessed at this time, please try again later.', 500);
+    }
+    // Destructure the current password of the user's account from the request body and check if it's defined.
+    const { currentPassword } = req.body;
+    if (!currentPassword) {
+      return next(new AppError('Please provide your current password.', 400));
+    }
+    // Check if the current password is correct (using bcrypt because the password in the DB is hashed).
+    if (!(await bcrypt.compare(currentPassword, userDoc.password))) {
+      return next(new AppError('Please ensure that your current password is correct.', 400));
+    }
+    // Destructure the newPassword and confirmPassword field from the request body and check if newPassword is defined.
+    const { newPassword, confirmPassword } = req.body;
+
+    if (!newPassword) {
+      return next(new AppError('Please provide a new password!', 400));
+    }
+    // Check that the new password is different from the current password.
+    if (newPassword === currentPassword) {
+      return next(
+        new AppError('The new password must be different from your current password.', 400),
+      );
+    }
+    // Check that the user confirmed their new password.
+    if (!confirmPassword) {
+      return next(new AppError('Please confirm your password.', 400));
+    }
+    // Check that the new password matches the password confirmation
+    if (confirmPassword !== newPassword) {
+      return next(
+        new AppError('Passwords do not match. Please make sure both fields are identical.', 400),
+      );
+    }
+
+    // Update the user's password
+    userDoc.password = newPassword;
+    await userDoc.save();
+
+    // Create a new JWT.
+    const JWT = tokenutils.signJWT(userDoc._id);
+
+    // return JSON response with confirmation that the current password has been updated
+    return sendJsonRes(res, 200, { message: 'Password was successfully updated!', token: JWT });
   });
 };
