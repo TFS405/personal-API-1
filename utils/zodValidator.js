@@ -4,17 +4,16 @@ const { z } = require('zod');
 
 // ------------ FUNCTIONS -------------------
 
-// This function will take in a schema that defines properties and their expected data-types, and will also take in an object with properties to
-// validate against those matching properties in the schema and their data-types.
+// Validates an input object against a given schema, ensuring each key/value pair matches the expected data type that's defined in the given schema.
 exports.validateOrThrow = (schemaObj, objectToValidate, partial = false) => {
-  // Creating the zod schema
+  // Creating a zod schema, optionally making each field optional using the given schema object.
   const validationSchema = partial ? z.object(schemaObj).partial() : z.object(schemaObj);
 
-  // Utilizing the zod schema to validate input data types
+  // Utilizing the given schema to validate the data types in the given object.
   const validationResults = validationSchema.safeParse(objectToValidate);
 
-  // If validation failed, an error is created with the intention to be caught by a "validationError" edge-casing,
-  // where we pass all zod error messages. If an error is thrown, the encompassing function will exit...
+  // If validation fails, a Zod error with all issues is thrown.
+  // This error will be passed to Express's global error-handling middleware.
 
   if (!validationResults.success) {
     const err = new Error();
@@ -29,6 +28,6 @@ exports.validateOrThrow = (schemaObj, objectToValidate, partial = false) => {
     throw err;
   }
 
-  // If validation is successful, no error is thrown and a truthy value is returned
+  // If validation passes, the function returns a truthy value without throwing an error.
   return true;
 };
