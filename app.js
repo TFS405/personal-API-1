@@ -35,7 +35,8 @@ app.use((req, res, next) => {
 
 // ------------- ERROR HANDLERS --------
 
-app.use((err, req, res) => {
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
   let message;
   if (err.message) {
     message = err.message;

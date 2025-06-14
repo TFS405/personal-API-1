@@ -457,7 +457,12 @@ exports.updatePassword = (model) => {
 
     // Perhaps redundant, check to make sure a document was returned.
     if (!userDoc) {
-      return next('This request cannot be proccessed at this time, please try again later.', 500);
+      return next(
+        new AppError(
+          'This request cannot be proccessed at this time, please try again later.',
+          500,
+        ),
+      );
     }
     // Destructure the current password of the user's account from the request body and check if it's defined.
     const { currentPassword } = req.body;
