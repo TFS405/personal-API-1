@@ -39,7 +39,7 @@ exports.getAll = (model) => {
     const results = docs.length;
 
     // Sending JSON response
-    sendJsonRes(res, 200, {
+    sendJsonRes(200, {
       results,
       data: docs,
     });
@@ -57,7 +57,7 @@ exports.getOne = (model, fieldsToSelectArray) => {
       return next(new AppError('No resource found with that ID!', 404));
     }
 
-    sendJsonRes(res, 200, { user: doc });
+    sendJsonRes(200, { user: doc });
   });
 };
 
@@ -87,7 +87,7 @@ exports.createOne = (model, zodSchema, ...fieldWhiteListArray) => {
     const doc = await model.create(filtered);
 
     // Return JSON response
-    sendJsonRes(res, 201, {
+    sendJsonRes(201, {
       data: { doc },
     });
   });
@@ -175,7 +175,7 @@ exports.updateOne = (
       : doc;
 
     // Send back the default json response.
-    return sendJsonRes(res, 200, { data: JSONResFields });
+    return sendJsonRes(200, { data: JSONResFields });
   });
 };
 
@@ -186,7 +186,7 @@ exports.deleteOne = (model) => {
       return next(new AppError('No resource found with that ID!', 404));
     }
 
-    sendJsonRes(res, 204, {});
+    sendJsonRes(204, {});
   });
 };
 
@@ -234,7 +234,7 @@ exports.signupUser = (model, zodSchemaObj, fieldWhiteListArray) => {
     const token = tokenutils.signJWT(newUser._id);
 
     // Send json response with token included
-    return sendJsonRes(res, 201, {
+    return sendJsonRes(201, {
       data: newUser,
       token,
     });
@@ -285,7 +285,7 @@ exports.loginUser = (model) => {
     // If all credentials are correct and present, send json response with JWT
     const token = tokenutils.signJWT(user.id);
 
-    return sendJsonRes(res, 200, { token });
+    return sendJsonRes(200, { token });
   });
 };
 
@@ -324,7 +324,7 @@ exports.updateUser = (model, updateSchema, isZodSchemaPartial = false) => {
     });
 
     // Return a JSON response.
-    return sendJsonRes(res, 200, { data: { user: userDoc } });
+    return sendJsonRes(200, { data: { user: userDoc } });
   });
 };
 
@@ -376,7 +376,7 @@ exports.forgotPassword = (model) => {
         to: userDoc.email,
       });
 
-      sendJsonRes(res, 200, { message: 'Token sent to email.' });
+      sendJsonRes(200, { message: 'Token sent to email.' });
     } catch (err) {
       userDoc.passwordResetToken = undefined;
       userDoc.passwordResetTokenExpiration = undefined;
@@ -449,7 +449,7 @@ exports.resetPassword = (model) => {
     // Send a session token to user.
     const JWT = tokenutils.signJWT(userDoc._id);
 
-    sendJsonRes(res, 200, { JWT });
+    sendJsonRes(200, { JWT });
   });
 };
 
@@ -502,6 +502,6 @@ exports.updatePassword = (model) => {
     const JWT = tokenutils.signJWT(userDoc._id);
 
     // return JSON response with confirmation that the current password has been updated
-    return sendJsonRes(res, 200, { message: 'Password was successfully updated!', token: JWT });
+    return sendJsonRes(200, { message: 'Password was successfully updated!', token: JWT });
   });
 };
