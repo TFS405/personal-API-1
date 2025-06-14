@@ -6,12 +6,12 @@ const { z } = require('zod');
 
 // This function will take in a schema that defines properties and their expected data-types, and will also take in an object with properties to
 // validate against those matching properties in the schema and their data-types.
-exports.validateOrThrow = (schemaObj, dataObjectToValidate, partial = false) => {
+exports.validateOrThrow = (schemaObj, objectToValidate, partial = false) => {
   // Creating the zod schema
   const validationSchema = partial ? z.object(schemaObj).partial() : z.object(schemaObj);
 
   // Utilizing the zod schema to validate input data types
-  const validationResults = validationSchema.safeParse(dataObjectToValidate);
+  const validationResults = validationSchema.safeParse(objectToValidate);
 
   // If validation failed, an error is created with the intention to be caught by a "validationError" edge-casing,
   // where we pass all zod error messages. If an error is thrown, the encompassing function will exit...
