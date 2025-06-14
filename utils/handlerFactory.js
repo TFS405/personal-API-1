@@ -99,7 +99,9 @@ exports.updateOne = (
   {
     isZodSchemaPartial = false,
     selectHiddenFields: fieldsToSelectArray = [],
+    // Allows custom error messages to be used.
     configErrorMessage: { emptyBodyString, noValidFieldsString, missingDocString } = {},
+    // Option parameter to send specific fields inside the json response.
     configJsonRes: fieldsToSendArray = [],
   } = {},
 ) => {
@@ -133,30 +135,33 @@ exports.updateOne = (
     // Validate the request body. If Validation fails then an error is thrown inside of validateDataTypes, otherwise function proceeds as normal.
     zodValidator.validateOrThrow(zodSchema, filtered, isZodSchemaPartial);
 
-    // Checking for selected fields.
-    let fieldSelection;
-    if (fieldsToSelectArray.length > 0) {
-      fieldSelection = fieldsToSelectArray.map((field) => `+${field}`).join(' ');
-    }
-
     // Create and await the query update object.
     let query = model.findByIdAndUpdate(req.params.id, filtered, {
       new: true,
       runValidators: true,
     });
 
+    // Checking for selected fields.
+    let fieldSelection;
+
+    if (fieldsToSelectArray.length > 0) {
+      fieldSelection = fieldsToSelectArray.map((field) => `+${field}`).join(' ');
+    }
+
+    // If selected fields were requested, attach select method to query.
     if (fieldSelection) {
       query = query.select(fieldSelection);
     }
 
+    // Execute the query.
     const doc = await query;
 
+    // Check if a document was found.
     if (!doc) {
       return next(new AppError(missingDocString ?? 'No resource found with that ID.', 404));
     }
 
     // Extract data to send in JSON response.
-
     const JSONResFields =
       fieldsToSelectArray.length > 0
         ? fieldsToSendArray.reduce((acc, field) => {
