@@ -12,46 +12,46 @@ const { Schema } = mongoose;
 const userSchema = new Schema({
   username: {
     type: String,
-    required: [true, 'Please select a username!'],
-    unique: [true, 'Username is already taken, please enter a different username']
+    required: [true, 'Please select a username.'],
+    unique: [true, 'Username is already taken, please enter a different username.'],
   },
   password: {
     type: String,
-    required: [true, 'Please type in a password!'],
-    select: false
+    required: [true, 'Please type in a password.'],
+    select: false,
   },
   confirmPassword: {
     type: String,
-    required: [true, 'Please confirm your password!'],
+    required: [true, 'Please confirm your password.'],
     select: false,
     validate: {
       validator: function (el) {
         return el === this.password;
       },
-      message: 'Passwords do not match!'
-    }
+      message: 'Passwords do not match!',
+    },
   },
   passwordChangedAt: {
     type: Date,
-    select: false
+    select: false,
   },
   email: {
     type: String,
     required: [true, 'Please provide a valid email!'],
     validate: [validator.isEmail, 'Please provide a valid email!'],
-    unique: [true, 'Email is already in use, please enter a different email']
+    unique: [true, 'Email is already in use, please enter a different email'],
   },
   role: {
     type: String,
     default: 'user',
     enum: {
       values: ['user', 'admin'],
-      message: 'Role must be either user or admin'
+      message: 'Role must be either user or admin',
     },
-    select: false
+    select: false,
   },
   passwordResetToken: String,
-  passwordResetTokenExpiration: Date
+  passwordResetTokenExpiration: Date,
 });
 
 // ------------------ CUSTOM SCHEMA METHODS --------------
