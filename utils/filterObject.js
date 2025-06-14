@@ -2,12 +2,14 @@
 
 // ------------- FUNCTION ---------------------
 
-const filterObj = (fieldWhiteList, givenProperties) => {
+const filterObj = (whiteListKeysArray, givenPropertiesObj) => {
   const cleanObj = {};
 
-  Object.keys(givenProperties).forEach((el) => {
-    if (fieldWhiteList.includes(el)) {
-      cleanObj[el] = givenProperties[el];
+  // Iterate over the keys of an object.
+  Object.keys(givenPropertiesObj).forEach((el) => {
+    // Iterate over an array, and check to see if each key in the givenPropertiesObj is included in the array's contents.
+    if (whiteListKeysArray.includes(el)) {
+      cleanObj[el] = givenPropertiesObj[el];
     }
   });
 
