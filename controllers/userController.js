@@ -7,11 +7,9 @@ const handlerFactory = require('../utils/handlerFactory');
 
 // ------------------- VARIABLES --------------------------------
 
-const schemaShape = {
+const updateUserSchema = {
   username: z.string(),
-  password: z.string(),
-  confirmPassword: z.string(),
-  email: z.string(),
+  email: z.string().email(),
 };
 
 //-------------------- HANDLER FUNCTIONS ------------------------
@@ -20,7 +18,7 @@ exports.getAllUsers = handlerFactory.getAll(User);
 
 exports.getUser = handlerFactory.getOne(User);
 
-exports.updateUser = handlerFactory.updateOne(User, schemaShape, { isZodSchemaPartial: true });
+exports.updateUser = handlerFactory.updateUser(User, updateUserSchema, true);
 
 exports.updatePassword = handlerFactory.updatePassword(User);
 

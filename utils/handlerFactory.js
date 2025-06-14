@@ -21,7 +21,7 @@ const AppError = require('./appError');
 
 const filterObj = require('./filterObject.js');
 
-// ----------- HANDLER FUNCTIONS ----------------
+// ----------- NON-SPECIFIC HANDLER FUNCTIONS ----------------
 
 exports.getAll = (model) => {
   return catchAsync(async (req, res, next) => {
@@ -130,7 +130,7 @@ exports.updateOne = (
       );
     }
 
-    // Validate the request body. If Validation fails then an error is thrown inside of validateDataTypes, or else function proceeds as normal.
+    // Validate the request body. If Validation fails then an error is thrown inside of validateDataTypes, otherwise function proceeds as normal.
     zodValidator.validateOrThrow(zodSchema, filtered, isZodSchemaPartial);
 
     // Checking for selected fields.
@@ -279,6 +279,45 @@ exports.loginUser = (model) => {
     const token = tokenutils.signJWT(user.id);
 
     return sendJsonRes(res, 200, { token });
+  });
+};
+
+exports.updateUser = (model, updateSchema, isZodSchemaPartial = false) => {
+  return catchAsync(async (req, res, next) => {
+    // Check if user is attempting to change the "password" field. If so, reject request.
+    if ('password' in req.body) {
+      return next(
+        new AppError(
+          'Cannot update password through this route. Please use /updateMyPassword instead.',
+          400,
+        ),
+      );
+    }
+
+    // Filter the request body.
+    const filtered = filterObj(Object.keys(updateSchema), req.body);
+
+    // Make sure that there is still data remaining after filtering.
+    if (!filtered || Object.keys(filtered).length === 0) {
+      return next(
+        new AppError(
+          `No valid fields received in the request body, please submit a valid field. Valid fields include ${Object.keys(updateSchema).join(', ')}.`,
+          400,
+        ),
+      );
+    }
+
+    // Validate the request body. If Validation fails then an error is thrown inside of validateDataTypes, otherwise function proceeds as normal.
+    zodValidator.validateOrThrow(updateSchema, filtered, isZodSchemaPartial);
+
+    // Find and update the user document
+    const userDoc = await model.findByIdAndUpdate(req.user.id, filtered, {
+      new: true,
+      runValidators: true,
+    });
+
+    // Return a JSON response.
+    return sendJsonRes(res, 200, { data: { user: userDoc } });
   });
 };
 
