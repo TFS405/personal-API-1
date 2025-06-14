@@ -12,10 +12,10 @@ const schemaShape = {
   category: z.string(),
   difficulty: z.string(),
   challengeTask: z.string(),
-  challengeSolution: z.string()
+  challengeSolution: z.string(),
 };
 const solutionSchemaShape = {
-  challengeAttempt: z.string()
+  challengeAttempt: z.string(),
 };
 
 // -------------- CONTROLLER FUNCTIONS --------------
@@ -27,11 +27,11 @@ exports.getChallenge = handlerFactory.getOne(Challenge);
 exports.createChallenge = handlerFactory.createOne(
   Challenge,
   schemaShape,
-  Object.keys(schemaShape)
+  Object.keys(schemaShape),
 );
 
 exports.updateChallenge = handlerFactory.updateOne(Challenge, schemaShape, {
-  isZodSchemaPartial: true
+  isZodSchemaPartial: true,
 });
 
 exports.deleteChallenge = handlerFactory.deleteOne(Challenge);
@@ -42,7 +42,7 @@ exports.solveChallenge = handlerFactory.updateOne(Challenge, solutionSchemaShape
   configErrorMessage: {
     emptyBodyString: 'Please provide a solution!',
     noValidFieldsString:
-      'Invalid request body. A "challengeAttempt" field is required to submit a solution.'
+      'Invalid request body. A "challengeAttempt" field is required to submit a solution.',
   },
-  configJsonRes: ['challengeAttempt', 'challengeSolution']
+  configJsonRes: ['challengeAttempt', 'challengeSolution'],
 });
