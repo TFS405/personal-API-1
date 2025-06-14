@@ -228,7 +228,7 @@ exports.signupUser = (model, zodSchemaObj, fieldWhiteListArray) => {
     // Send a JSON response with a JWT included.
     return sendJsonRes(201, {
       data: newUser,
-      token,
+      JWT,
     });
   });
 };
@@ -371,7 +371,7 @@ exports.forgotPassword = (model) => {
 
       // Send a JSON response confirming that the email has been sent.
       sendJsonRes(200, { message: 'Token sent to email.' });
-    } catch (err) {
+    } catch {
       // If the attempt to send the reset password email failed, clear the pasword reset related fields in the user document.
       userDoc.passwordResetToken = undefined;
       userDoc.passwordResetTokenExpiration = undefined;
