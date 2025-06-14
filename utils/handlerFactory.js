@@ -161,16 +161,18 @@ exports.updateOne = (
       return next(new AppError(missingDocString ?? 'No resource found with that ID.', 404));
     }
 
-    // Extract data to send in JSON response.
-    const JSONResFields =
-      fieldsToSelectArray.length > 0
-        ? fieldsToSendArray.reduce((acc, field) => {
-            if (field in doc) {
-              acc[field] = doc[field];
-            }
-            return acc;
-          }, {})
-        : doc;
+    // Manually shape the JSON response based on `fieldsToSendArray`.
+    // If an array is provided, only those fields will be included in the final output.
+    // Otherwise, return the entire document as-is.
+
+    const JSONResFields = fieldsToSendArray
+      ? fieldsToSendArray.reduce((acc, field) => {
+          if (field in doc) {
+            acc[field] = doc[field];
+          }
+          return acc;
+        }, {})
+      : doc;
 
     // Send back the default json response.
     return sendJsonRes(res, 200, { data: JSONResFields });
