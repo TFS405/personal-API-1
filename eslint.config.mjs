@@ -44,7 +44,6 @@ export default defineConfig([
   // 🔥 JSON — exclude JS to prevent false parsing
   {
     files: ['**/*.json'],
-    excludedFiles: ['**/*.{js,mjs,cjs}'], // 🛡️ no JS mis-parsing
     plugins: { json },
     language: 'json/json',
     extends: ['json/recommended'],

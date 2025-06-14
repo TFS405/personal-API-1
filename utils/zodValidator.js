@@ -2,6 +2,8 @@
 
 const { z } = require('zod');
 
+const devLog = require('./devLogs');
+
 // ------------ FUNCTIONS -------------------
 
 // Validates an input object against a given schema, ensuring each key/value pair matches the expected data type that's defined in the given schema.
@@ -24,7 +26,7 @@ exports.validateOrThrow = (schemaObj, objectToValidate, partial = false) => {
     err.name = 'ValidationError';
     err.message = errMessages.join('\n ');
 
-    console.log(`err.message ---> `, err.message);
+    devLog(`err.message ---> `, err.message);
     throw err;
   }
 

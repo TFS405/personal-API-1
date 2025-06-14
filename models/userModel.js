@@ -25,7 +25,7 @@ const userSchema = new Schema({
     required: [true, 'Please confirm your password.'],
     select: false,
     validate: {
-      validator: function (el) {
+      validator(el) {
         return el === this.password;
       },
       message: 'Passwords do not match!',
@@ -82,7 +82,9 @@ userSchema.methods.changedPasswordAfter = function (iat) {
 
 userSchema.pre('save', async function (next) {
   // 1. Check if the password property has been modified. If so, then hashing is required for security purposes. (NO RAW PASSWORD STRINGS WILL RESIDE IN THE DB)
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password')) {
+    return next();
+  }
 
   // 2. Hash the password, since it HAS been modified (or is newly created).
   this.password = await bcrypt.hash(this.password, 12);

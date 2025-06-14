@@ -1,7 +1,6 @@
 // --------- IMPORTING MODULES -------------------
 
 const express = require('express');
-const mongoose = require('mongoose');
 
 const morgan = require('morgan');
 
@@ -10,6 +9,7 @@ const challengeRouter = require('./routes/challengeRoutes');
 
 const AppError = require('./utils/appError');
 const sendJsonRes = require('./utils/sendJsonRes');
+const devLog = require('./utils/devLogs');
 
 // -------- LOADING ENV VARIABLES ---------------
 const path = require('path');
@@ -35,7 +35,7 @@ app.use((req, res, next) => {
 
 // ------------- ERROR HANDLERS --------
 
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   let message;
   if (err.message) {
     message = err.message;
@@ -52,29 +52,29 @@ app.use((err, req, res, next) => {
 
   // Managing validation errors
   if (err.name === 'ValidationError') {
-    console.log(err.stack);
+    devLog(err);
     return sendJsonRes(res, 400, { message });
   }
 
   // Managing MongoDB duplicate-key errors
   if (possibleErrorCode === 11000) {
-    console.log(err.stack);
+    devLog(err);
     return sendJsonRes(res, 400, { message: err.message });
   }
 
   // Managing castErrors
   if (err.name === 'CastError') {
-    console.log(err.stack);
+    devLog(err);
     return sendJsonRes(res, 400, { message: err.message });
   }
 
   // Managing TypeErrors
   if (err.name === 'TypeError') {
-    console.log(err.stack);
+    devLog(err);
     return sendJsonRes(res, 400, { message: err.message });
   }
 
-  console.log(err);
+  devLog(err);
   return res.status(500).json({
     status: 'failed',
     message: 'No further information is available. Please  try again later!',

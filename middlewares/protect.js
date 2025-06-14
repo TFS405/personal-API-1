@@ -22,7 +22,7 @@ const protect = (...hiddenFieldsToInclude) => {
       return next(new AppError(' You are not logged in! Please provide a JWT', 401));
     }
 
-    const decoded = await promisify(JWT.verify)(token, process.env.JWT_SECRET).catch((err) => {
+    const decoded = await promisify(JWT.verify)(token, process.env.JWT_SECRET).catch(() => {
       return next(new AppError('Please login again!', 401));
     });
 

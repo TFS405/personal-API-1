@@ -1,16 +1,13 @@
+// ---------- MODULE IMPORTS --------------------
+
+const devLog = require('./utils/devLogs');
+
 // ----------- CATCHING UNHANDLED EXCEPTIONS / REJECTIONS -------------------
 
 process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
+  devLog('Uncaught Exception:', err);
 
   process.exit(1); // Exit immediately if server is not defined
-});
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Rejection:', err);
-  server.close(() => {
-    console.error('Server closed due to unhandled rejection');
-    process.exit(1);
-  });
 });
 
 // -------- IMPORTING MODULES ---------------
@@ -32,10 +29,19 @@ const port = process.env.PORT || 80;
 connectDB(port)
   .then(() => {
     server = app.listen(port, () => {
-      console.log(`Server is now listening on port ${port} ✅`);
+      devLog(`Server is now listening on port ${port} ✅`);
     });
   })
   .catch((err) => {
-    console.error('Failed to connect to MongoDB:', err);
+    devLog('Failed to connect to MongoDB:', err);
     process.exit(1); // Exit the process if connection fails
   });
+
+// --------- CATCHING UNHANDLED REJECTIONS --------------
+process.on('unhandledRejection', (err) => {
+  devLog('Unhandled Rejection:', err);
+  server.close(() => {
+    devLog('Server closed due to unhandled rejection');
+    process.exit(1);
+  });
+});

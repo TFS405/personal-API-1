@@ -1,6 +1,5 @@
 // --------- IMPORTING MODULES
 
-const mongoose = require('mongoose');
 const express = require('express');
 
 const challengeController = require('../controllers/challengeController');
