@@ -25,20 +25,19 @@ const filterObj = require('./filterObject.js');
 
 exports.getAll = (model) => {
   return catchAsync(async (req, res, next) => {
-    // Creating a query, then applying query parameters.
+    // Retrieve all documents, applying any given filters.
     const docs = await new APIFeatures(model.find(), req.query).filter().execute();
 
-    // Making sure that "docs" is not an empty / falsy value.
+    // Check if any documents were found.
     if (!docs || docs.length === 0) {
       return next(
         new AppError(`Search query returned no results! Please check your search query!`, 404),
       );
     }
-
-    // Obtaining the length, or the amount of documents returned from the query.
+    // Retrieve the number of documents that were found.
     const results = docs.length;
 
-    // Sending JSON response
+    // Send a JSON response.
     sendJsonRes(200, {
       results,
       data: docs,
@@ -48,22 +47,24 @@ exports.getAll = (model) => {
 
 exports.getOne = (model, fieldsToSelectArray) => {
   return catchAsync(async (req, res, next) => {
-    // Creating a query, possibly selecting hidden fields then executing it.
+    // Retrieve the requested user document, applying any given filters and field selections.
     const doc = await new APIFeatures(model.findById(req.params.id), req.query)
       .selectFields(fieldsToSelectArray)
       .execute();
 
+    // Check to see if a user document was successfully found.
     if (!doc) {
       return next(new AppError('No resource found with that ID!', 404));
     }
 
+    // Send a JSON response.
     sendJsonRes(200, { user: doc });
   });
 };
 
 exports.createOne = (model, zodSchema, ...fieldWhiteListArray) => {
   return catchAsync(async (req, res, next) => {
-    // Make sure request body is not empty, and that it actually has at least one key!
+    // Check if request body is empty.
     if (!req.body || Object.keys(req.body).length === 0) {
       return next(new AppError(`Request body is empty. Please include data in the request`, 400));
     }
@@ -71,7 +72,7 @@ exports.createOne = (model, zodSchema, ...fieldWhiteListArray) => {
     // Filter the request body
     const filtered = filterObj(...fieldWhiteListArray, req.body);
 
-    // Make sure that there is still data remaining after filtering
+    // Check if there are still fields left in the request body after filtering.
     if (!filtered || Object.keys(filtered).length === 0) {
       return next(
         new AppError(
@@ -80,10 +81,10 @@ exports.createOne = (model, zodSchema, ...fieldWhiteListArray) => {
         ),
       );
     }
-    // Validate the request body
-    zodValidator.validateDataTypes(zodSchema, filtered);
+    // Validate the request body. If validation fails then an error is thrown inside of validateOrThrow, otherwise function proceeds as normal.
+    zodValidator.validateOrThrow(zodSchema, filtered);
 
-    // Save the request body
+    // Create a new document using the filtered data.
     const doc = await model.create(filtered);
 
     // Return JSON response
@@ -107,7 +108,7 @@ exports.updateOne = (
 ) => {
   return catchAsync(async (req, res, next) => {
     //
-    // Make sure request body is not empty, and that it actually has at least one key!
+    // Check if the request body is empty.
     if (!req.body || Object.keys(req.body).length === 0) {
       return next(
         new AppError(
@@ -121,7 +122,7 @@ exports.updateOne = (
     // Filter the request body
     const filtered = filterObj(Object.keys(zodSchema), req.body);
 
-    // Make sure that there is still data remaining after filtering.
+    // Check if there is still data remaining after filtering.
     if (!filtered || Object.keys(filtered).length === 0) {
       return next(
         new AppError(
@@ -132,10 +133,10 @@ exports.updateOne = (
       );
     }
 
-    // Validate the request body. If Validation fails then an error is thrown inside of validateDataTypes, otherwise function proceeds as normal.
+    // Validate the request body. If Validation fails then an error is thrown inside of validateOrThrow, otherwise function proceeds as normal.
     zodValidator.validateOrThrow(zodSchema, filtered, isZodSchemaPartial);
 
-    // Create and await the query update object.
+    // Retrieve document and then update it.
     let query = model.findByIdAndUpdate(req.params.id, filtered, {
       new: true,
       runValidators: true,
@@ -148,7 +149,7 @@ exports.updateOne = (
       fieldSelection = fieldsToSelectArray.map((field) => `+${field}`).join(' ');
     }
 
-    // If selected fields were requested, attach select method to query.
+    // If selected fields were requested, attach the select method to the query.
     if (fieldSelection) {
       query = query.select(fieldSelection);
     }
@@ -174,18 +175,21 @@ exports.updateOne = (
         }, {})
       : doc;
 
-    // Send back the default json response.
+    // Send back the default JSON response.
     return sendJsonRes(200, { data: JSONResFields });
   });
 };
 
 exports.deleteOne = (model) => {
   return catchAsync(async (req, res, next) => {
+    // Delete a document that's associated with a specific, given ID.
     const doc = await model.findByIdAndDelete(req.params.id);
+
+    // Check if a document was successfuly found.
     if (!doc) {
       return next(new AppError('No resource found with that ID!', 404));
     }
-
+    // Send a JSON response.
     sendJsonRes(204, {});
   });
 };
@@ -194,16 +198,16 @@ exports.deleteOne = (model) => {
 
 exports.signupUser = (model, zodSchemaObj, fieldWhiteListArray) => {
   return catchAsync(async (req, res, next) => {
-    // Checking to see if there is indeed a request body.
+    // Check to see if the request body is empty.
     if (!req.body) {
       return next(
         new AppError('Please provide a username, email, password and password confirmation!', 400),
       );
     }
-    // Filtering out disallowed properties from input data.
+    // Filter the request body.
     const filtered = filterObj(fieldWhiteListArray, req.body);
 
-    // Checking if there is still data remaining in "filtered" after filtering.
+    // Check if there are still fields left in the request body after filtering.
     if (Object.keys(filtered).length === 0) {
       return next(
         new AppError(
@@ -212,28 +216,16 @@ exports.signupUser = (model, zodSchemaObj, fieldWhiteListArray) => {
         ),
       );
     }
-    // Validating input data from request body against validation schema.
-    zodValidator.validateDataTypes(zodSchemaObj, filtered);
+    // Validate the request body. If validation fails then an error is thrown inside of validateOrThrow, otherwise function proceeds as normal.
+    zodValidator.validateOrThrow(zodSchemaObj, filtered);
 
-    // Checking if the required signup properties still exist after filtering and validating.
-    if (
-      Object.keys(filtered).length !== fieldWhiteListArray.length ||
-      !fieldWhiteListArray.every((el) => el in filtered)
-    ) {
-      return next(
-        new AppError(
-          `Data is missing one or more required fields! Required fields: ${fieldWhiteListArray}`,
-          400,
-        ),
-      );
-    }
-    // Creating user doc after filtering and validating input data.
+    // Create a user document using the filtered data from the request body.
     const newUser = await model.create(filtered);
 
-    // Creating JWT
-    const token = tokenutils.signJWT(newUser._id);
+    // Create a JWT.
+    const JWT = tokenutils.signJWT(newUser._id);
 
-    // Send json response with token included
+    // Send a JSON response with a JWT included.
     return sendJsonRes(201, {
       data: newUser,
       token,
@@ -243,16 +235,16 @@ exports.signupUser = (model, zodSchemaObj, fieldWhiteListArray) => {
 
 exports.loginUser = (model) => {
   return catchAsync(async (req, res, next) => {
-    // Check for presence of email and password in the request body.
+    // Check for presence of the email and password fields in the request body.
     if (!req.body?.password || !req.body?.email) {
       return next(new AppError('Please provide an email and password to login!', 400));
     }
-    // Assign email and password from the request body to the submittedEmail and submittedPassword variables, then trim them.
+    // Assign the email and password fields from the request body to the submittedEmail and submittedPassword variables, then trim them.
     const { email, password } = req.body;
     const submittedEmail = email.trim();
     const submittedPassword = password.trim();
 
-    // Checking if the submittedEmail and submittedPassword variables are empty.
+    // Check if the submittedEmail and submittedPassword variables are empty or undefined.
     if (submittedEmail === '' || submittedPassword === '') {
       return next(
         new AppError(
@@ -261,10 +253,10 @@ exports.loginUser = (model) => {
         ),
       );
     }
-    // Retrieving the targeted user doc.
+    // Retrieve the targeted user document.
     const user = await model.findOne({ email: submittedEmail }).select('+password');
 
-    // Checking if the user doc was successfully found.
+    // Check if the user document was successfully found.
     if (!user) {
       return next(
         new AppError(
@@ -273,25 +265,25 @@ exports.loginUser = (model) => {
         ),
       );
     }
-
-    // Comparing the submittedPassword with the saved password in the user doc.
+    // Compare the submittedPassword with the saved password in the user document.
     const isPasswordCorrect = await bcrypt.compare(submittedPassword, user.password);
 
-    // Checking if submittedPassword is correct
+    // Check if the submitted password is correct.
     if (!isPasswordCorrect) {
       return next(new AppError('Incorrect password! Please try again!', 401));
     }
 
-    // If all credentials are correct and present, send json response with JWT
+    //  Create a JWT.
     const token = tokenutils.signJWT(user.id);
 
+    // If all credentials are correct, send a JSON response with a JWT.
     return sendJsonRes(200, { token });
   });
 };
 
 exports.updateUser = (model, updateSchema, isZodSchemaPartial = false) => {
   return catchAsync(async (req, res, next) => {
-    // Check if user is attempting to change the "password" field. If so, reject request.
+    // Check if the user is attempting to change the "password" field. If so, reject the request.
     if ('password' in req.body) {
       return next(
         new AppError(
@@ -314,10 +306,10 @@ exports.updateUser = (model, updateSchema, isZodSchemaPartial = false) => {
       );
     }
 
-    // Validate the request body. If Validation fails then an error is thrown inside of validateDataTypes, otherwise function proceeds as normal.
+    // Validate the request body. If Validation fails then an error is thrown inside of validateOrThrow, otherwise function proceeds as normal.
     zodValidator.validateOrThrow(updateSchema, filtered, isZodSchemaPartial);
 
-    // Find and update the user document
+    // Find and update the user document.
     const userDoc = await model.findByIdAndUpdate(req.user.id, filtered, {
       new: true,
       runValidators: true,
@@ -330,23 +322,23 @@ exports.updateUser = (model, updateSchema, isZodSchemaPartial = false) => {
 
 exports.forgotPassword = (model) => {
   return catchAsync(async (req, res, next) => {
-    // Obtain the given email from the request body.
+    // Destructure the email field from the request body.
     const { email } = req.body;
 
-    // Check if the user submitted an email, or if the email field is undefined in the given request body.
+    // Check if the destructured email field is empty or undefined.
     if (!email) {
       return next(new AppError('Please provide an email to reset your password.', 400));
     }
-    //  Check if the given email is in a valid email format and structure.
+    //  Check if the given email is in a valid email format.
     if (!validator.isEmail(email)) {
       return next(
         new AppError('Invalid email address submitted, please provide a valid email address.', 400),
       );
     }
-    // Search for a user account associated with the given email.
+    // Query for a user document associated with the given email.
     const userDoc = await model.findOne({ email });
 
-    // Check if a user account was found that is associated with the given email, if not then send an error response.
+    // Check if a user document was found to be associated with the given email.
     if (!userDoc) {
       return next(new AppError('No document was found with that email, please try again.', 404));
     }
@@ -359,16 +351,17 @@ exports.forgotPassword = (model) => {
     userDoc.passwordResetToken = tokenHash;
     userDoc.passwordResetTokenExpiration = tokenExpiration;
 
-    // Save the user document, but deactivate schema validators since not all fields are being updated (only the password reset related fields are).
+    // Save the user document, but deactivate schema validators since not all fields are being updated (only the password reset related fields).
     await userDoc.save({ validateBeforeSave: false });
 
-    // Send token to user's email.
+    // Send the hex token to user's email.
     const resetURL = `${req.protocol}://${req.get('host')}/users/resetPassword/${token}`;
 
+    // Create a message to be sent in the reset password email.
     const message = `Forgot your password? Submit a patch request with your new passowrd and passwordConfirm to: ${resetURL}.
     \nIf you didn't forget your password, please ignore this email.`;
 
-    // Attempting to send the email.
+    // Attempt to send the email.
     try {
       await sendEmail({
         subject: 'Your password reset token (valid for only 15 minutes).',
@@ -376,12 +369,15 @@ exports.forgotPassword = (model) => {
         to: userDoc.email,
       });
 
+      // Send a JSON response confirming that the email has been sent.
       sendJsonRes(200, { message: 'Token sent to email.' });
     } catch (err) {
+      // If the attempt to send the reset password email failed, clear the pasword reset related fields in the user document.
       userDoc.passwordResetToken = undefined;
       userDoc.passwordResetTokenExpiration = undefined;
       await userDoc.save({ validateBeforeSave: false });
 
+      // Return an error explaining that the email was unsuccessfully sent.
       return next(new AppError('There was an error sending the mail. Try again later!', 500));
     }
   });
@@ -389,13 +385,13 @@ exports.forgotPassword = (model) => {
 
 exports.resetPassword = (model) => {
   return catchAsync(async (req, res, next) => {
-    // URL link to send request to recieve  a password reset token.
+    // URL link to send a request to recieve  a password reset token.
     const ForgotPasswordUrl = 'https://127.0.0.1:3000/users/forgotPassword';
 
-    // Hash the given reset token, to be compared to hashed reset token stored in MongoDB.
+    // Hash the given reset token, to be compared to the hashed reset token stored in MongoDB.
     const hashedToken = crypto.createHash('sha256').update(req.params.resetToken).digest('hex');
 
-    // Find user document, using the hashed reset token as the search parameter.
+    // Find the user document, using the hashed reset token as the search argument.
     const userDoc = await model.findOne({ passwordResetToken: hashedToken }).select('+password');
 
     // Check if a user document was succesfully found (with a matching, hashed resetPasswordToken).
@@ -420,7 +416,7 @@ exports.resetPassword = (model) => {
       );
     }
 
-    // Destructure password and passwordConfirm values from the request body and check if they are defined
+    // Destructure the password and passwordConfirm fields from the request body and check if they are defined.
     const { password, passwordConfirm } = req.body;
 
     if (!password) {
@@ -431,7 +427,7 @@ exports.resetPassword = (model) => {
     }
 
     //
-    // Check if the given new password is the same as the user's current password. If true, request the user to use a different password.
+    // Check if the new password is the same as the user's current password. If true, request the user to use a different password.
     const isPasswordSame = await bcrypt.compare(password, userDoc.password);
 
     if (isPasswordSame) {
@@ -440,25 +436,26 @@ exports.resetPassword = (model) => {
       );
     }
 
-    // Remove the password reset token from the user document before consuming the password reset token.
+    // Remove the password reset token from the user's document before consuming the password reset token.
     userDoc.password = password;
     userDoc.passwordConfirm = password;
     (userDoc.passwordResetToken = undefined), (userDoc.passwordResetTokenExpiration = undefined);
     await userDoc.save();
 
-    // Send a session token to user.
+    // Create a JWT.
     const JWT = tokenutils.signJWT(userDoc._id);
 
+    // Send a JWT.
     sendJsonRes(200, { JWT });
   });
 };
 
 exports.updatePassword = (model) => {
   return catchAsync(async (req, res, next) => {
-    // Obtain user doc from the user's id (which we already have since this will run after a protect middleware).
+    // Obtain a user's document using the user's ID that is stored in the req parameter.
     const userDoc = await model.findOne({ _id: req.user.id }).select('+password');
 
-    // Although redundant in some sense, check to make sure a document was returned.
+    // Perhaps redundant, check to make sure a document was returned.
     if (!userDoc) {
       return next('This request cannot be proccessed at this time, please try again later.', 500);
     }
@@ -467,17 +464,17 @@ exports.updatePassword = (model) => {
     if (!currentPassword) {
       return next(new AppError('Please provide your current password.', 400));
     }
-    // Check if the current password is correct (using bcrypt because the password in the DB is hashed).
+    // Check if the current password is correct (using bcrypt because the password in the DB is hashed using bcrypt).
     if (!(await bcrypt.compare(currentPassword, userDoc.password))) {
       return next(new AppError('Please ensure that your current password is correct.', 400));
     }
-    // Destructure the newPassword and confirmPassword field from the request body and check if newPassword is defined.
+    // Destructure the newPassword and confirmPassword fields from the request body and check if newPassword is defined.
     const { newPassword, confirmPassword } = req.body;
 
     if (!newPassword) {
       return next(new AppError('Please provide a new password!', 400));
     }
-    // Check that the new password is different from the current password.
+    // Check that the new password is different from the user's current password.
     if (newPassword === currentPassword) {
       return next(
         new AppError('The new password must be different from your current password.', 400),
@@ -487,7 +484,7 @@ exports.updatePassword = (model) => {
     if (!confirmPassword) {
       return next(new AppError('Please confirm your password.', 400));
     }
-    // Check that the new password matches the password confirmation
+    // Check that the new password matches the password confirmation.
     if (confirmPassword !== newPassword) {
       return next(
         new AppError('Passwords do not match. Please make sure both fields are identical.', 400),
