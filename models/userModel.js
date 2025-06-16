@@ -52,6 +52,10 @@ const userSchema = new Schema({
   },
   passwordResetToken: String,
   passwordResetTokenExpiration: Date,
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 // ------------------ CUSTOM SCHEMA METHODS --------------
@@ -62,6 +66,7 @@ userSchema.methods.toJSON = function () {
   delete userObject.password;
   delete userObject.confirmPassword;
   delete userObject.__v;
+  delete userObject.isActive;
   return userObject;
 };
 
