@@ -11,47 +11,52 @@ const catchAsync = require('../utils/catchAsync');
 
 const protect = (...hiddenFieldsToInclude) => {
   return catchAsync(async (req, res, next) => {
-    // Verify token existence.
-    let token;
-    if (req?.headers?.authorization?.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
-    }
+    // Initialize the token variable.
+    const token = req.headers.authorization?.startsWith('Bearer')
+      ? req.headers.authorization.split(' ')[1]
+      : undefined;
 
-    // Verify token validity.
+    // Check if token is defined.
     if (!token) {
-      return next(new AppError(' You are not logged in! Please provide a JWT', 401));
+      return next(new AppError('You are not logged in. Please provide a JWT.', 401));
     }
 
-    const decoded = await promisify(JWT.verify)(token, process.env.JWT_SECRET).catch(() => {
-      return next(new AppError('Please login again!', 401));
-    });
-
-    if (!decoded?.id || !decoded?.iat) {
-      return next(new AppError('Invalid JWT! Please login again', 401));
+    // Verify and decode the JWT. If invalid or expired, block the request.
+    let decoded;
+    try {
+      decoded = await promisify(JWT.verify)(token, process.env.JWT_SECRET);
+    } catch {
+      return next(new AppError('Please login again.', 401));
     }
 
+    // Destructure the JWT's payload.
     const { id, iat } = decoded;
 
-    // Check to see if user still exist.
+    // Create a search query object using the user's ID.
     let query = User.findById(id);
 
-    // Checking for value in selectedFields.
+    // Add any requested fields in hiddenFieldsToInclude to the search query object.
     if (hiddenFieldsToInclude.length > 0) {
       const fieldSelection = hiddenFieldsToInclude.map((field) => `+${field}`).join(' ');
       query = query.select(fieldSelection);
     }
 
+    // Retrieve the user's document.
     const user = await query;
 
+    // Check if the user's document was found.
     if (!user) {
-      return next(new AppError('User not found!', 404));
+      return next(new AppError('User not found.', 404));
     }
 
-    // Check if password was changed after JWT was issued.
+    // Check if the user's password changed after the JWT was issued.
     if (user.changedPasswordAfter(iat)) {
-      return next(new AppError('Password was recently changed! Please login again!', 401));
+      return next(new AppError('Password was recently changed. Please login again.', 401));
     }
 
+    if (!user.isActive) {
+      return next(new AppError('This user account is inactive.', 404));
+    }
     req.user = user;
     next();
   });
