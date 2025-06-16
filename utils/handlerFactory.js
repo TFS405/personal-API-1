@@ -460,7 +460,7 @@ exports.resetPassword = (model) => {
   });
 };
 
-exports.updatePassword = (model) => {
+exports.updateMyPassword = (model) => {
   return catchAsync(async (req, res, next) => {
     // Obtain a user's document using the user's ID that is stored in the req parameter.
     const userDoc = await model.findOne({ _id: req.user.id }).select('+password');

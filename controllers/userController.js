@@ -14,16 +14,20 @@ const updateUserSchema = {
 
 //-------------------- HANDLER FUNCTIONS ------------------------
 
+// -------- ADMIN ROUTES ---------------
+
 exports.getAllUsers = handlerFactory.getAll(User);
 
 exports.getUser = handlerFactory.getOne(User);
 
 exports.updateUser = handlerFactory.updateUser(User, updateUserSchema, true);
 
-exports.updatePassword = handlerFactory.updatePassword(User);
-
 exports.deleteUser = handlerFactory.deleteOne(User);
 
-exports.updateMyPassword = handlerFactory.updateMe(User, updateUserSchema, true);
+// -------- USER ROUTES -----------------
 
-exports.deleteMyAccount = handlerFactory.deleteMe(User);
+exports.updateMyPassword = handlerFactory.updateMyPassword(User);
+
+exports.updateMe = handlerFactory.updateMe(User, updateUserSchema, true);
+
+exports.deleteMe = handlerFactory.deleteMe(User);

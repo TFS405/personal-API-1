@@ -20,10 +20,10 @@ router.route('/login').post(authController.login);
 router.route('/forgotPassword').post(authController.forgotPassword);
 router.route('/resetPassword/:resetToken').patch(authController.resetPassword);
 
-router.route('/updateMe').patch(protect(), userController.updateMyPassword);
-router.route('/deleteMe').delete(protect(), userController.deleteMyAccount);
+router.route('/updateMyPassword').patch(protect(), userController.updateMyPassword);
 
-router.route('/updatePassword').patch(protect(), userController.updatePassword);
+router.route('/updateMe').patch(protect(), userController.updateMe);
+router.route('/deleteMe').delete(protect(), userController.deleteMyAccount);
 
 router
   .route('/:id')
