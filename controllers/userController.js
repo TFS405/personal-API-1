@@ -23,3 +23,7 @@ exports.updateUser = handlerFactory.updateUser(User, updateUserSchema, true);
 exports.updatePassword = handlerFactory.updatePassword(User);
 
 exports.deleteUser = handlerFactory.deleteOne(User);
+
+exports.updateMyPassword = handlerFactory.updateMe(User, updateUserSchema, true);
+
+exports.deleteMyAccount = handlerFactory.deleteMe(User);

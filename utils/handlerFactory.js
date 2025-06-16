@@ -254,10 +254,10 @@ exports.loginUser = (model) => {
       );
     }
     // Retrieve the targeted user document.
-    const user = await model.findOne({ email: submittedEmail }).select('+password');
+    const userDoc = await model.findOne({ email: submittedEmail }).select('+password +isActive');
 
     // Check if the user document was successfully found.
-    if (!user) {
+    if (!userDoc) {
       return next(
         new AppError(
           'No user was found with that email. Please try again or create a new account.',
@@ -266,18 +266,28 @@ exports.loginUser = (model) => {
       );
     }
     // Compare the submittedPassword with the saved password in the user document.
-    const isPasswordCorrect = await bcrypt.compare(submittedPassword, user.password);
+    const isPasswordCorrect = await bcrypt.compare(submittedPassword, userDoc.password);
 
     // Check if the submitted password is correct.
     if (!isPasswordCorrect) {
       return next(new AppError('Incorrect password! Please try again!', 401));
     }
 
-    //  Create a JWT.
-    const token = tokenutils.signJWT(user.id);
+    // Check if the user's account is active. If not, reactivate the user's account and initialize the reactivation message.
+    const responsePayload = {};
 
-    // If all credentials are correct, send a JSON response with a JWT.
-    return sendJsonRes(res, 200, { token });
+    if (!userDoc.isActive) {
+      userDoc.isActive = true;
+      await userDoc.save();
+
+      responsePayload.message = 'Your account has been reactivated!';
+    }
+    // Include a JWT and the user's document in the response payload.
+    responsePayload.data = userDoc;
+    responsePayload.token = tokenutils.signJWT(userDoc.id);
+
+    // Send a JSON response with a JWT.
+    return sendJsonRes(res, 200, responsePayload);
   });
 };
 
@@ -505,5 +515,101 @@ exports.updatePassword = (model) => {
 
     // return JSON response with confirmation that the current password has been updated
     return sendJsonRes(res, 200, { message: 'Password was successfully updated!', token: JWT });
+  });
+};
+
+exports.updateMe = (model, updateSchema, isZodSchemaPartial = false) => {
+  return catchAsync(async (req, res, next) => {
+    // Check if the request body is empty.
+    if (Object.keys(req.body).length <= 0) {
+      return next(
+        new AppError(
+          `No valid fields found in the request body. Valid fields include: ${Object.keys(updateSchema).join(', ')}`,
+          400,
+        ),
+      );
+    }
+    // Check if the user is attempting to change the "password" field. If so, reject the request.
+    if ('password' in req.body) {
+      return next(
+        new AppError(
+          'Cannot update password through this route. Please use users/updateMyPassword instead.',
+          400,
+        ),
+      );
+    }
+    // Filter the request body.
+    const filtered = filterObj(Object.keys(updateSchema), req.body);
+
+    // Check if there is still data remaining after filtering.
+    if (!filtered || Object.keys(filtered).length === 0) {
+      return next(
+        new AppError(
+          'No valid properties received in the request body, please submit a valid property.',
+          400,
+        ),
+      );
+    }
+
+    // Validate the request body. If Validation fails then an error is thrown inside of validateOrThrow, otherwise function proceeds as normal.
+    zodValidator.validateOrThrow(updateSchema, filtered, isZodSchemaPartial);
+
+    const userDoc = await model.findByIdAndUpdate(req.user.id, filtered, { new: true });
+
+    // Check if the user's doc was successfully found.
+    if (!userDoc) {
+      return next(
+        new AppError(
+          'This request cannot be proccessed at this time, please try again later.',
+          500,
+        ),
+      );
+    }
+
+    // Send a JSON response.
+    sendJsonRes(res, 200, { user: userDoc });
+  });
+};
+
+exports.deleteMe = (model) => {
+  return catchAsync(async (req, res, next) => {
+    // Check if the request body is empty.
+    if (Object.keys(req.body).length <= 0) {
+      return next(
+        new AppError(
+          'No password provided. To delete your account, please include your current password.',
+        ),
+        400,
+      );
+    }
+    // Retrieve the current user's document.
+    const userDoc = await model.findById(req.user.id).select('+password');
+
+    // Check if the user's document was successfully found.
+    if (!userDoc) {
+      return next(
+        new AppError(
+          'This request cannot be proccessed at this time, please try again later.',
+          500,
+        ),
+      );
+    }
+
+    // Destructure user's password from the request body.
+    const { password: submittedPassword } = req.body;
+
+    // Check if the given password is correct.
+    if (!(await bcrypt.compare(submittedPassword, userDoc.password))) {
+      return next(
+        new AppError('Unable to delete account: password did not match. Please try again.', 400),
+      );
+    }
+
+    // Change user document's active status to false.
+    userDoc.isActive = false;
+    userDoc.save();
+
+    // Send JSON response with no content(204).
+    sendJsonRes(res, 204, {});
   });
 };
