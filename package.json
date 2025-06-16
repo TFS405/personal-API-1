@@ -7,7 +7,8 @@
     "start": "nodemon server.js",
     "dev": "NODE_ENV=development nodemon server.js",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "dev-debug": "cross-env NODE_ENV=development nodemon --inspect-brk index.js"
   },
   "author": "Cameron",
   "license": "ISC",
