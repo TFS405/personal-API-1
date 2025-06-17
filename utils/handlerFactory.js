@@ -443,7 +443,8 @@ exports.resetPassword = (model) => {
     // Remove the password reset token from the user's document before consuming the password reset token.
     userDoc.password = password;
     userDoc.passwordConfirm = password;
-    (userDoc.passwordResetToken = undefined), (userDoc.passwordResetTokenExpiration = undefined);
+    userDoc.passwordResetToken = undefined;
+    userDoc.passwordResetTokenExpiration = undefined;
     await userDoc.save();
 
     // Create a JWT.
