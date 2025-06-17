@@ -293,16 +293,6 @@ exports.loginUser = (model) => {
 
 exports.updateUser = (model, updateSchema, isZodSchemaPartial = false) => {
   return catchAsync(async (req, res, next) => {
-    // Check if the user is attempting to change the "password" field. If so, reject the request.
-    if ('password' in req.body) {
-      return next(
-        new AppError(
-          'Cannot update password through this route. Please use /updateMyPassword instead.',
-          400,
-        ),
-      );
-    }
-
     // Filter the request body.
     const filtered = filterObj(Object.keys(updateSchema), req.body);
 
@@ -319,11 +309,15 @@ exports.updateUser = (model, updateSchema, isZodSchemaPartial = false) => {
     // Validate the request body. If Validation fails then an error is thrown inside of validateOrThrow, otherwise function proceeds as normal.
     zodValidator.validateOrThrow(updateSchema, filtered, isZodSchemaPartial);
 
-    // Find and update the user document.
-    const userDoc = await model.findByIdAndUpdate(req.user.id, filtered, {
-      new: true,
-      runValidators: true,
+    // Find the user document.
+    const userDoc = await model.findById(req.params.id);
+
+    // Update the user document.
+    Object.keys(filtered).forEach((key) => {
+      userDoc[key] = filtered[key];
     });
+    // Save the user document.
+    userDoc.save();
 
     // Return a JSON response.
     return sendJsonRes(res, 200, { data: { user: userDoc } });

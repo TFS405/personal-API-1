@@ -12,8 +12,6 @@ const router = express.Router();
 
 // ------------ ROUTES -----------------
 
-router.route('/').get(protect('role'), restrictTo('admin'), userController.getAllUsers);
-
 router.route('/signup').post(authController.signup);
 router.route('/login').post(authController.login);
 
@@ -24,6 +22,10 @@ router.route('/updateMyPassword').patch(protect(), userController.updateMyPasswo
 
 router.route('/updateMe').patch(protect(), userController.updateMe);
 router.route('/deleteMe').delete(protect(), userController.deleteMe);
+
+// ------ ADMIN RESTRICTED ROUTES ----------
+
+router.route('/').get(protect('role'), restrictTo('admin'), userController.getAllUsers);
 
 router
   .route('/:id')

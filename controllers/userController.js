@@ -5,9 +5,17 @@ const { z } = require('zod');
 const User = require('../models/userModel');
 const handlerFactory = require('../utils/handlerFactory');
 
-// ------------------- VARIABLES --------------------------------
+// ------------------- SCHEMAS --------------------------------
 
 const updateUserSchema = {
+  username: z.string(),
+  password: z.string(),
+  email: z.string().email(),
+  role: z.string(),
+  isActive: z.boolean(),
+};
+
+const updateMeSchema = {
   username: z.string(),
   email: z.string().email(),
 };
@@ -28,6 +36,6 @@ exports.deleteUser = handlerFactory.deleteOne(User);
 
 exports.updateMyPassword = handlerFactory.updateMyPassword(User);
 
-exports.updateMe = handlerFactory.updateMe(User, updateUserSchema, true);
+exports.updateMe = handlerFactory.updateMe(User, updateMeSchema, true);
 
 exports.deleteMe = handlerFactory.deleteMe(User);
