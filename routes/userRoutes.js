@@ -23,7 +23,7 @@ router.route('/resetPassword/:resetToken').patch(authController.resetPassword);
 router.route('/updateMyPassword').patch(protect(), userController.updateMyPassword);
 
 router.route('/updateMe').patch(protect(), userController.updateMe);
-router.route('/deleteMe').delete(protect(), userController.deleteMyAccount);
+router.route('/deleteMe').delete(protect(), userController.deleteMe);
 
 router
   .route('/:id')
