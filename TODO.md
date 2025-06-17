@@ -5,5 +5,3 @@ TASK: Review deleteUser function for limitations, and restrictions. Only admins 
 TASK: Fix issue with passwordResetToken appearing in getAllUsers handler.
 
 TASK: Fix issue with roles being shown in response JWT after account creation (also hide DB ID).
-
-TASK: Restrict getUsers and GetAllUsers to admins only.
