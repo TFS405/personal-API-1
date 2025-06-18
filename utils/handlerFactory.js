@@ -225,9 +225,18 @@ exports.signupUser = (model, zodSchemaObj, fieldWhiteListArray) => {
     // Create a JWT.
     const JWT = tokenutils.signJWT(newUser._id);
 
+    // Create the JSON response payload.
+    const desiredFields = ['username', 'email', 'id'];
+    const payload = desiredFields.reduce((acc, key) => {
+      if (key in newUser) {
+        acc[key] = newUser[key];
+      }
+      return acc;
+    }, {});
+
     // Send a JSON response with a JWT included.
     return sendJsonRes(res, 201, {
-      data: newUser,
+      data: payload,
       JWT,
     });
   });

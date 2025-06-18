@@ -2,4 +2,4 @@ TASK: Review deleteUser function for limitations, and restrictions. Only admins 
 
 TASK: Fix issue with roles being shown in response JWT after account creation (also hide DB ID).
 
-TASK: Look into refining error message for incorrectly structured ID's in ":id" urls, in related routes.
+TASK: Look into refining error message for incorrectly structured ID's in ":id" url related routes.
