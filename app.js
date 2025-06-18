@@ -66,7 +66,13 @@ app.use((err, req, res, next) => {
   // Managing castErrors
   if (err.name === 'CastError') {
     devLog(err);
-    return sendJsonRes(res, 400, { message: err.message });
+
+    return sendJsonRes(res, 400, {
+      message: {
+        message: err.message,
+        reason: err.reason?.message || 'Unknown reason',
+      },
+    });
   }
 
   // Managing TypeErrors
